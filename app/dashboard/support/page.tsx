@@ -1,0 +1,22 @@
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
+import SupportClient from "@/components/support-client";
+
+export default async function SupportPage() {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const tickets = await prisma.supportTicket.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const serialized = tickets.map((t) => ({
+    ...t,
+    resolvedAt: t.resolvedAt?.toISOString() ?? null,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  }));
+
+  return <SupportClient initialTickets={serialized} />;
+}

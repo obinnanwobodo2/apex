@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" fill="none">
+  <defs>
+    <linearGradient id="apexTriangle" x1="124" y1="28" x2="124" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3BCFB0"/>
+      <stop offset="1" stop-color="#1F9E78"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Symbol -->
+  <path d="M124 28L22 256H226L124 28Z" fill="url(#apexTriangle)"/>
+  <path d="M22 256H226" stroke="#35C6A6" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="124" cy="28" r="7.5" fill="#3BCFB0"/>
+
+  <!-- Wordmark -->
+  <text x="274" y="182" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="136" fill="#172B4D" letter-spacing="-1.5">APEX</text>
+  <text x="278" y="236" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="500" font-size="58" fill="#168F6B" letter-spacing="14">VISUALS</text>
+</svg>

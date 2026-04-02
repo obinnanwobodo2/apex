@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Profile {
+  id              String   @id
+  fullName        String?
+  phone           String?
+  avatarUrl       String?
+  // Company info
+  companyName     String?
+  companyAddress  String?
+  companyWebsite  String?
+  vatNumber       String?
+  // Preferences
+  notifyEmail     Boolean  @default(true)
+  notifyUpdates   Boolean  @default(true)
+  notifyBilling   Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions    Subscription[]
+  projects         Project[]
+  supportTickets   SupportTicket[]
+  contacts         Contact[]
+  deals            Deal[]
+  tasks            Task[]
+  activities       Activity[]
+  crmIntegrations  CrmIntegration[]
+}
+
+model Subscription {
+  id                String    @id @default(cuid())
+  userId            String
+  package           String
+  amount            Float
+  amountPaid        Float     @default(0)
+  status            String    @default("pending") // pending | active | cancelled | failed
+  paid              Boolean   @default(false)
+  cancelledAt       DateTime?
+  businessName      String?
+  contactPerson     String?
+  phone             String?
+  description       String?
+  invoiceNumber     String?
+  paystackReference String?   @unique
+  nextBillingDate   DateTime?
+  hostingPlan       String?   // none | basic | business
+  hostingAmount     Float     @default(0)
+  projectType       String?
+  features          String?
+  budget            String?
+  timeline          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  profile  Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  title          String
+  type           String    @default("website") // website | crm | ecommerce | custom | request
+  status         String    @default("requested") // requested | scoping | in_progress | review | completed
+  progress       Int       @default(0)
+  websiteUrl     String?
+  description    String?
+  notes          String?
+  milestones     String?   // JSON array
+  budget         String?
+  deadline       DateTime?
+  attachments    String?   // JSON array of storage URLs
+  services       String?   // JSON array of selected services
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  profile      Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+}
+
+model SupportTicket {
+  id        String    @id @default(cuid())
+  userId    String
+  subject   String
+  message   String
+  priority  String    @default("normal") // low | normal | high | urgent
+  status    String    @default("open")   // open | in_progress | resolved | closed
+  response  String?
+  resolvedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── CRM Models ────────────────────────────────────────────────────────────────
+
+model Contact {
+  id        String   @id @default(cuid())
+  userId    String
+  firstName String
+  lastName  String?
+  email     String?
+  phone     String?
+  company   String?
+  status    String   @default("lead") // lead | prospect | customer | churned
+  tags      String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile    Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+  tasks      Task[]
+  activities Activity[]
+}
+
+model Deal {
+  id          String    @id @default(cuid())
+  userId      String
+  contactId   String?
+  title       String
+  value       Float     @default(0)
+  stage       String    @default("lead")
+  probability Int       @default(0)
+  closeDate   DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  userId      String
+  contactId   String?
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    String    @default("medium")
+  status      String    @default("todo")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  contactId String?
+  type      String
+  title     String
+  body      String?
+  createdAt DateTime @default(now())
+
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+}
+
+model CrmIntegration {
+  id        String   @id
+  userId    String
+  type      String
+  config    String   @default("{}")
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
