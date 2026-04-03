@@ -7,7 +7,15 @@ export default async function RequestsPage() {
   if (!userId) return null;
 
   const requests = await prisma.project.findMany({
-    where: { userId, type: "request" },
+    where: {
+      userId,
+      type: "request",
+      subscription: {
+        is: {
+          paid: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 

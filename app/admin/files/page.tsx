@@ -22,7 +22,7 @@ export default async function AdminFilesPage() {
   if (!userId) return null;
 
   const files = await listAllStoredFiles();
-  const userIds = [...new Set(files.map((file) => file.userId))];
+  const userIds = Array.from(new Set(files.map((file) => file.userId)));
 
   const profiles = userIds.length > 0
     ? await prisma.profile.findMany({

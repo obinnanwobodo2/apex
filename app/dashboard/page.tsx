@@ -19,7 +19,14 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
     }),
     prisma.project.findMany({
-      where: { userId },
+      where: {
+        userId,
+        subscription: {
+          is: {
+            paid: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
       take: 5,
     }),

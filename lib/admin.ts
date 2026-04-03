@@ -19,11 +19,11 @@ export async function getAdminAccess() {
 
   const byId = ADMIN_USER_IDS.includes(userId);
   const byEmail = email ? ADMIN_EMAILS.includes(email) : false;
-  const isDev = process.env.NODE_ENV === "development";
-
-  // In local development, allow access if no admin env vars are configured yet.
-  const allowDevFallback = isDev && ADMIN_USER_IDS.length === 0 && ADMIN_EMAILS.length === 0;
+  const allowDevFallback =
+    process.env.NODE_ENV === "development" &&
+    process.env.ALLOW_ADMIN_DEV_FALLBACK === "true" &&
+    ADMIN_USER_IDS.length === 0 &&
+    ADMIN_EMAILS.length === 0;
 
   return { userId, isAdmin: byId || byEmail || allowDevFallback };
 }
-

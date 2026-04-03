@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "deploy:check": "node scripts/deploy-preflight.mjs",
+    "deploy:ready": "npm run deploy:check && npm run db:generate && npm run build",
+    "vercel:build": "npm run deploy:check && npm run db:generate && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.81.0",

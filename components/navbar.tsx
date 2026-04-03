@@ -46,6 +46,17 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        setDropdown(false);
+      }
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? "bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm" : "bg-transparent"
@@ -53,7 +64,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsOpen(false)}>
             <Image src="/logo.svg" alt="Apex Visuals" width={140} height={56} className="h-9 w-auto" />
           </Link>
 
@@ -122,7 +133,13 @@ export default function Navbar() {
             )}
           </div>
 
-          <button className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900" onClick={() => setIsOpen(!isOpen)}>
+          <button
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav"
+            aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+          >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -130,7 +147,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div id="mobile-nav" className="md:hidden bg-white border-t border-gray-200 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
             {NAV_LINKS.flatMap((link) =>
               link.children

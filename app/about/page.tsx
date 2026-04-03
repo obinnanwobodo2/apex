@@ -12,10 +12,10 @@ const VALUES = [
 ];
 
 const STATS = [
-  { value: "50+", label: "Projects delivered" },
-  { value: "4 years", label: "In business" },
-  { value: "98%", label: "Client satisfaction" },
-  { value: "3 days", label: "Average delivery" },
+  { value: "12+", label: "Projects delivered" },
+  { value: "Since 2025", label: "In business" },
+  { value: "95%", label: "Client satisfaction" },
+  { value: "5 days", label: "Average delivery" },
 ];
 
 export default function AboutPage() {
@@ -30,7 +30,7 @@ export default function AboutPage() {
             <Users className="h-4 w-4" />
             About Apex Visuals
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-navy mb-5 leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-brand-navy mb-5 leading-tight">
             We build websites that <span className="text-brand-green">actually grow your business</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
@@ -69,8 +69,8 @@ export default function AboutPage() {
                 covers everything, forever. No surprise invoices. No abandoned projects.
               </p>
               <p className="text-gray-500 leading-relaxed">
-                Today we serve businesses across South Africa — from solo consultants to growing
-                companies — all on simple, transparent monthly plans.
+                Established in 2025, we are a growing studio serving businesses across South Africa —
+                from solo consultants to growing companies — all on simple, transparent monthly plans.
               </p>
             </div>
             <div className="bg-gradient-to-br from-brand-green/10 to-brand-navy/5 rounded-3xl p-8 text-center">

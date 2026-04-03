@@ -82,7 +82,7 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
           <CardContent className="py-16 text-center">
             <FolderKanban className="h-12 w-12 text-gray-200 mx-auto mb-3" />
             <h3 className="font-bold text-brand-navy mb-1">No projects yet</h3>
-            <p className="text-sm text-gray-400">Projects will appear here when clients request them</p>
+            <p className="text-sm text-gray-400">Paid client requests will appear here automatically.</p>
           </CardContent>
         </Card>
       </div>
@@ -203,4 +203,3 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
     </div>
   );
 }
-

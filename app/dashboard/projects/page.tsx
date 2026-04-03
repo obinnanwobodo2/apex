@@ -7,7 +7,14 @@ export default async function ProjectsPage() {
   if (!userId) return null;
 
   const projects = await prisma.project.findMany({
-    where: { userId },
+    where: {
+      userId,
+      subscription: {
+        is: {
+          paid: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 

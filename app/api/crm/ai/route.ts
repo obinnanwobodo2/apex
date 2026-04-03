@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import Anthropic from "@anthropic-ai/sdk";
+import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
 
@@ -9,8 +10,11 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
-  const { message, context } = body as { message: string; context?: string };
+  const body = await readJsonObject(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+
+  const message = sanitizeText(body.message, { maxLength: 2400, allowNewLines: true });
+  const context = sanitizeText(body.context, { maxLength: 2400, allowNewLines: true });
 
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
 

@@ -6,11 +6,11 @@ import { ArrowRight, Shield, Zap, TrendingUp, Star, Play } from "lucide-react";
 
 export default function LandingHero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white pt-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white pt-20 pb-12 sm:pt-16">
       {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full opacity-10 blur-[120px] pointer-events-none"
+      <div className="absolute top-1/4 left-1/4 w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full opacity-10 blur-[80px] sm:blur-[120px] pointer-events-none"
         style={{ background: "radial-gradient(circle, #1b2340 0%, transparent 70%)" }} />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-8 blur-[100px] pointer-events-none"
+      <div className="absolute bottom-1/4 right-1/4 w-[220px] h-[220px] sm:w-[400px] sm:h-[400px] rounded-full opacity-8 blur-[70px] sm:blur-[100px] pointer-events-none"
         style={{ background: "radial-gradient(circle, #2dc5a2 0%, transparent 70%)" }} />
 
       {/* Grid pattern */}
@@ -26,10 +26,10 @@ export default function LandingHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-green/30 bg-brand-green/10 text-brand-green text-sm font-medium mb-8"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-green/30 bg-brand-green/10 text-brand-green text-xs sm:text-sm font-medium mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
-          South Africa&apos;s #1 Monthly Website Care Service
+          Newly Established in 2025
         </motion.div>
 
         {/* Headline */}
@@ -37,7 +37,7 @@ export default function LandingHero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight mb-6"
+          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight mb-6"
         >
           Your Website,
           <br />
@@ -56,7 +56,7 @@ export default function LandingHero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed font-light"
+          className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed"
         >
           One monthly fee covers everything — design, development, hosting, SEO,
           updates and ongoing support. No surprise invoices. No abandoned projects.
@@ -85,13 +85,13 @@ export default function LandingHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-wrap justify-center gap-6 sm:gap-8 text-sm text-gray-600"
+          className="flex flex-wrap justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600"
         >
           {[
             { icon: Shield, text: "No long-term contracts" },
             { icon: Zap, text: "Live in days, not months" },
-            { icon: TrendingUp, text: "50+ businesses served" },
-            { icon: Star, text: "98% client satisfaction" },
+            { icon: TrendingUp, text: "10+ businesses supported" },
+            { icon: Star, text: "95% client satisfaction" },
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-2">
               <Icon className="h-4 w-4 text-brand-green" />
@@ -108,10 +108,10 @@ export default function LandingHero() {
           className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-200 rounded-2xl overflow-hidden border border-gray-200"
         >
           {[
-            { value: "50+", label: "Clients Served" },
-            { value: "4 yrs", label: "In Business" },
-            { value: "98%", label: "Client Satisfaction" },
-            { value: "3 days", label: "Avg Delivery" },
+            { value: "10+", label: "Clients Served" },
+            { value: "Since 2025", label: "Established" },
+            { value: "95%", label: "Client Satisfaction" },
+            { value: "5 days", label: "Avg Delivery" },
           ].map((stat) => (
             <div key={stat.label} className="bg-white px-6 py-6 text-center">
               <div className="text-2xl font-extrabold text-white mb-1"

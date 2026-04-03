@@ -92,10 +92,10 @@ const PROJECTS = [
 ];
 
 const STATS = [
-  { value: "50+", label: "Projects delivered" },
+  { value: "12+", label: "Projects delivered" },
   { value: "6", label: "Industries served" },
-  { value: "32%", label: "Avg lead growth" },
-  { value: "98%", label: "Client satisfaction" },
+  { value: "24%", label: "Avg lead growth" },
+  { value: "95%", label: "Client satisfaction" },
 ];
 
 export default function PortfolioPage() {
@@ -110,7 +110,7 @@ export default function PortfolioPage() {
             <Star className="h-4 w-4 fill-brand-green" />
             Real work, real results
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-navy mb-5">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-brand-navy mb-5 leading-tight">
             Work we&apos;re proud of
           </h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto">

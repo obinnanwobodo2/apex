@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
 import { getAdminAccess } from "@/lib/admin";
+import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
 
@@ -35,9 +36,11 @@ export async function POST(req: Request) {
   if (!access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!access.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const body = await req.json();
-  const ticketId = typeof body.ticketId === "string" ? body.ticketId : "";
-  const instruction = typeof body.instruction === "string" ? body.instruction : "";
+  const body = await readJsonObject(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+
+  const ticketId = sanitizeText(body.ticketId, { maxLength: 64 }) ?? "";
+  const instruction = sanitizeText(body.instruction, { maxLength: 1000, allowNewLines: true }) ?? "";
 
   if (!ticketId) return NextResponse.json({ error: "ticketId required" }, { status: 400 });
 

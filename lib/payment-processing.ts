@@ -39,57 +39,111 @@ async function createSupportTicketIfMissing(userId: string, subject: string, mes
   });
 }
 
-async function ensureWebsiteProjectForSubscription(sub: {
+interface SubscriptionProjectMeta {
+  source?: string;
+  request?: {
+    title?: string | null;
+    description?: string | null;
+    services?: string[];
+    budget?: string | null;
+    deadline?: string | null;
+    notes?: string | null;
+  };
+  onboarding?: {
+    websiteGoals?: string | null;
+    hasBranding?: string | null;
+    brandingNotes?: string | null;
+    pagesFeatures?: string | null;
+  };
+}
+
+function parseSubscriptionProjectMeta(raw: string | null): SubscriptionProjectMeta | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    return parsed as SubscriptionProjectMeta;
+  } catch {
+    return null;
+  }
+}
+
+function getFirstDayOfNextMonth(from = new Date()) {
+  return new Date(from.getFullYear(), from.getMonth() + 1, 1, 0, 0, 0, 0);
+}
+
+function sanitizeServices(services: unknown) {
+  if (!Array.isArray(services)) return [];
+  return services.map((service) => String(service).trim()).filter(Boolean);
+}
+
+function parseDeadline(deadline: string | null | undefined) {
+  if (!deadline) return null;
+  const date = new Date(deadline);
+  if (!Number.isFinite(date.getTime())) return null;
+  return date;
+}
+
+async function ensureProjectForSubscription(sub: {
   id: string;
   userId: string;
   package: string;
+  businessName: string | null;
   description: string | null;
+  budget: string | null;
+  timeline: string | null;
+  hostingPlan: string | null;
+  features: string | null;
 }) {
-  const pkgId = sub.package as AnyPackageId;
-  if (!["starter", "growth", "pro"].includes(pkgId)) return;
-
-  const pendingRequest = await prisma.project.findFirst({
-    where: {
-      userId: sub.userId,
-      type: "request",
-      subscriptionId: null,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
   const existing = await prisma.project.findFirst({
     where: { userId: sub.userId, subscriptionId: sub.id },
   });
 
-  if (pendingRequest) {
-    await prisma.project.update({
-      where: { id: pendingRequest.id },
-      data: {
-        subscriptionId: sub.id,
-        type: "website",
-        status: "requested",
-        progress: 0,
-        title: pendingRequest.title || `${ALL_PACKAGES[pkgId]?.name ?? pkgId} Website`,
-        description: pendingRequest.description ?? sub.description,
-        notes: pendingRequest.notes ?? null,
-      },
-    });
-    return;
-  }
+  if (existing) return;
 
-  if (!existing) {
-    await prisma.project.create({
-      data: {
-        userId: sub.userId,
-        subscriptionId: sub.id,
-        title: `${ALL_PACKAGES[pkgId]?.name ?? pkgId} Website`,
-        type: "website",
-        status: "requested",
-        progress: 0,
-        description: sub.description ?? null,
-      },
-    });
-  }
+  const pkgId = sub.package as AnyPackageId;
+  const packageName = ALL_PACKAGES[pkgId]?.name ?? sub.package;
+  const isCrmProject = sub.package.startsWith("crm-");
+
+  const meta = parseSubscriptionProjectMeta(sub.features);
+  const requestMeta = meta?.request;
+  const services = sanitizeServices(requestMeta?.services);
+  const hasDetailedRequest = Boolean(
+    requestMeta?.title ||
+      requestMeta?.description ||
+      requestMeta?.budget ||
+      requestMeta?.deadline ||
+      requestMeta?.notes ||
+      services.length
+  );
+
+  const title = requestMeta?.title?.trim()
+    || sub.businessName?.trim()
+    || (isCrmProject ? `${packageName} CRM Setup` : `${packageName} Website Project`);
+
+  const description = requestMeta?.description?.trim() || sub.description || null;
+
+  const noteParts = [
+    requestMeta?.notes?.trim(),
+    sub.timeline?.trim() ? `Preferred timeline: ${sub.timeline.trim()}` : "",
+    sub.hostingPlan && sub.hostingPlan !== "none" ? `Hosting plan: ${sub.hostingPlan}` : "",
+  ].filter(Boolean);
+
+  await prisma.project.create({
+    data: {
+      userId: sub.userId,
+      subscriptionId: sub.id,
+      title,
+      type: isCrmProject ? "crm" : hasDetailedRequest ? "request" : "website",
+      status: "requested",
+      progress: 0,
+      description,
+      notes: noteParts.length > 0 ? noteParts.join(" | ") : null,
+      services: services.length > 0 ? JSON.stringify(services) : null,
+      budget: requestMeta?.budget?.trim() || sub.budget || null,
+      deadline: parseDeadline(requestMeta?.deadline),
+    },
+  });
 }
 
 async function finalizeDomainOrder(sub: {
@@ -218,15 +272,24 @@ export async function processSuccessfulPayment(reference: string): Promise<Payme
     return { success: true, packageName: result.packageName, warning: result.warning, domain: result.domain };
   }
 
-  const nextBilling = new Date();
-  nextBilling.setMonth(nextBilling.getMonth() + 1);
+  const nextBilling = sub.nextBillingDate ?? getFirstDayOfNextMonth(new Date());
 
   await prisma.subscription.update({
     where: { id: sub.id },
     data: { status: "active", paid: true, nextBillingDate: nextBilling },
   });
 
-  await ensureWebsiteProjectForSubscription(sub);
+  await ensureProjectForSubscription({
+    id: sub.id,
+    userId: sub.userId,
+    package: sub.package,
+    businessName: sub.businessName,
+    description: sub.description,
+    budget: sub.budget,
+    timeline: sub.timeline,
+    hostingPlan: sub.hostingPlan,
+    features: sub.features,
+  });
 
   const packageName = ALL_PACKAGES[sub.package as AnyPackageId]?.name ?? sub.package;
   return { success: true, packageName };

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAdminAccess } from "@/lib/admin";
+import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
+const ALLOWED_AGENTS = new Set(["project_planner", "client_update", "support_reply"]);
 
 function fallbackReply(agent: string, input: string) {
   if (agent === "project_planner") {
@@ -40,13 +42,18 @@ export async function POST(req: Request) {
   if (!access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!access.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const body = await req.json();
-  const agent = typeof body.agent === "string" ? body.agent : "";
-  const input = typeof body.input === "string" ? body.input : "";
-  const instruction = typeof body.instruction === "string" ? body.instruction : "";
+  const body = await readJsonObject(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
 
-  if (!agent || !input.trim()) {
+  const agent = sanitizeText(body.agent, { maxLength: 40 }) ?? "";
+  const input = sanitizeText(body.input, { maxLength: 6000, allowNewLines: true }) ?? "";
+  const instruction = sanitizeText(body.instruction, { maxLength: 800, allowNewLines: true }) ?? "";
+
+  if (!agent || !input) {
     return NextResponse.json({ error: "agent and input are required" }, { status: 400 });
+  }
+  if (!ALLOWED_AGENTS.has(agent)) {
+    return NextResponse.json({ error: "Invalid agent type" }, { status: 400 });
   }
 
   const model = process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
@@ -74,4 +81,3 @@ ${instruction ? `Extra instruction: ${instruction}` : ""}`;
     });
   }
 }
-

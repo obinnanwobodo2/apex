@@ -42,7 +42,7 @@ interface ProjectRequest {
 
 export default function RequestsClient({ initialRequests }: { initialRequests: ProjectRequest[] }) {
   const router = useRouter();
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests] = useState(initialRequests);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -73,31 +73,43 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("/api/projects/request", {
+      const pendingRes = await fetch("/api/subscription/pending", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          packageId: form.packageId,
+          requestDraft: {
+            title: form.title,
+            description: form.description,
+            services: form.services,
+            budget: form.budget,
+            deadline: form.deadline,
+            notes: form.notes,
+          },
+        }),
       });
-      if (!res.ok) throw new Error("Failed to submit");
-      const request = await res.json();
-      setRequests((prev) => [request, ...prev]);
-      const selectedPackage = form.packageId;
+      if (!pendingRes.ok) throw new Error("Failed to create invoice");
+      const pending = await pendingRes.json();
+
       if (form.paymentMode === "later") {
-        const pendingRes = await fetch("/api/subscription/pending", {
+        setSuccess("Request saved to Billing cart. Complete payment to submit it to our team.");
+        setShowForm(false);
+        setForm({ title: "", description: "", services: [], budget: "", deadline: "", notes: "", packageId: "starter", paymentMode: "now" });
+      } else {
+        const payRes = await fetch("/api/paystack/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ packageId: selectedPackage, description: form.description }),
+          body: JSON.stringify({ existingSubscriptionId: pending.id }),
         });
-        if (!pendingRes.ok) throw new Error("Failed to save pending invoice");
-        setSuccess("Request submitted. Invoice added to Billing so you can pay later.");
-        setShowForm(false);
-      } else {
-        setShowForm(false);
-        router.push(`/checkout?package=${selectedPackage}`);
+        if (!payRes.ok) throw new Error("Failed to start payment");
+        const payData = await payRes.json();
+        if (!payData.authorization_url) throw new Error("Missing payment URL");
+        window.location.href = payData.authorization_url;
       }
-      setForm({ title: "", description: "", services: [], budget: "", deadline: "", notes: "", packageId: "starter", paymentMode: "now" });
-    } catch {
-      setError("Failed to submit request. Please try again.");
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save your request.";
+      setError(message || "Failed to save your request.");
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +121,7 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-brand-navy">Project Requests</h1>
-          <p className="text-gray-500 text-sm mt-1">Submit a new project or service request for our team.</p>
+          <p className="text-gray-500 text-sm mt-1">Payment comes first. Once paid, your request appears in the admin work queue.</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -232,7 +244,7 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
                         : "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-brand-navy"
                     }`}
                   >
-                    Add To Billing
+                    Add to Cart
                   </button>
                 </div>
               </div>
@@ -290,10 +302,10 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
                   style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
                 >
                   {submitting
-                    ? "Submitting…"
+                    ? "Saving…"
                     : form.paymentMode === "later"
-                      ? "Submit Request & Save Invoice"
-                      : "Submit Request & Continue to Invoice"}
+                      ? "Save to Cart (Pay Later)"
+                      : "Continue to Secure Payment"}
                 </button>
                 <button
                   type="button"
@@ -359,7 +371,7 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
         <div className="bg-white border border-gray-200 rounded-2xl py-16 text-center">
           <FolderPlus className="h-10 w-10 text-[#222] mx-auto mb-3" />
           <h3 className="font-semibold text-brand-navy mb-1">No requests yet</h3>
-          <p className="text-gray-500 text-sm mb-5">Submit your first project or service request below.</p>
+          <p className="text-gray-500 text-sm mb-5">After payment succeeds, your submitted requests will appear here.</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-brand-navy"

@@ -31,10 +31,10 @@ const FOOTER_LINKS = {
 };
 
 const LEGAL = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Cookie Policy", href: "#" },
-  { label: "Refund Policy", href: "#" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Cookie Policy", href: "/cookie-policy" },
+  { label: "Refund Policy", href: "/refund-policy" },
 ];
 
 const SOCIAL = [
@@ -62,7 +62,7 @@ export default function Footer() {
             {/* Contact */}
             <div className="space-y-2.5">
               <a href="mailto:info@apexvisual.co.za"
-                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group">
+                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
                 <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
                 info@apexvisual.co.za
               </a>
@@ -76,7 +76,7 @@ export default function Footer() {
                 Johannesburg, South Africa
               </div>
               <a href="https://apexvisual.co.za" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors break-all">
                 <Globe className="h-4 w-4 text-brand-green flex-shrink-0" />
                 apexvisual.co.za
               </a>
@@ -113,15 +113,15 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="border-t border-gray-200 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} Apex Visuals (Pty) Ltd. All rights reserved. Reg. No. 2024/000000/07
+          <p className="text-xs text-gray-500 text-center sm:text-left">
+            © {new Date().getFullYear()} Apex Visuals (Pty) Ltd. All rights reserved. Reg. No. 2025/876555/07
           </p>
           <div className="flex flex-wrap items-center gap-4">
             {LEGAL.map((l) => (
-              <a key={l.label} href={l.href}
+              <Link key={l.label} href={l.href}
                 className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
                 {l.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

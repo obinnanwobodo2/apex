@@ -41,6 +41,7 @@ function packageDisplayName(sub: Subscription) {
 export default function BillingClient({ initialSubscriptions }: { initialSubscriptions: Subscription[] }) {
   const [subscriptions, setSubscriptions] = useState(initialSubscriptions);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [invoiceOpenId, setInvoiceOpenId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
@@ -82,6 +83,21 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
       }
     } finally {
       setPayingId(null);
+    }
+  }
+
+  async function removePendingInvoice(subscriptionId: string) {
+    setRemovingId(subscriptionId);
+    try {
+      const res = await fetch("/api/subscription/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscriptionId, hardDelete: true }),
+      });
+      if (!res.ok) throw new Error("Failed to remove invoice");
+      setSubscriptions((prev) => prev.filter((item) => item.id !== subscriptionId));
+    } finally {
+      setRemovingId(null);
     }
   }
 
@@ -150,7 +166,7 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
       {pendingSubs.length > 0 && (
         <Card className="border-brand-navy/10">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base text-brand-navy">Pending Invoices (Pay Later)</CardTitle>
+            <CardTitle className="text-base text-brand-navy">Cart / Pending Invoices</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingSubs.map((sub) => (
@@ -167,6 +183,9 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
                   <span className="text-sm font-bold text-brand-navy">{formatCurrency(sub.amountPaid || sub.amount)}</span>
                   <Button size="sm" onClick={() => payPendingInvoice(sub.id)} disabled={payingId === sub.id}>
                     {payingId === sub.id ? "Opening..." : "Pay Now"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => removePendingInvoice(sub.id)} disabled={removingId === sub.id}>
+                    {removingId === sub.id ? "Removing..." : "Delete"}
                   </Button>
                 </div>
               </div>
@@ -213,9 +232,16 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
                     </span>
                     <Badge variant={statusVariant(sub.status)} className="text-xs capitalize">{sub.status}</Badge>
                     {sub.paid && (
-                      <Button size="sm" variant="outline" onClick={() => setInvoiceOpenId(sub.id)}>
-                        View Invoice
-                      </Button>
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => setInvoiceOpenId(sub.id)}>
+                          View Invoice
+                        </Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={`/api/invoices/${sub.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                            Download PDF
+                          </a>
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -244,7 +270,12 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
                 <>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-brand-navy">Invoice</h3>
-                    <Button size="sm" variant="ghost" onClick={() => setInvoiceOpenId(null)}>Close</Button>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={`/api/invoices/${invoice.id}/pdf`} target="_blank" rel="noopener noreferrer">Download PDF</a>
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setInvoiceOpenId(null)}>Close</Button>
+                    </div>
                   </div>
                   <div className="text-sm text-gray-600 space-y-2">
                     <p><strong className="text-brand-navy">Invoice No:</strong> {invoice.invoiceNumber ?? invoice.id}</p>
@@ -254,6 +285,7 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
                       <p><strong className="text-brand-navy">Domain:</strong> {invoice.businessName}</p>
                     )}
                     <p><strong className="text-brand-navy">Amount Paid:</strong> {formatCurrency(invoice.amountPaid || invoice.amount)}</p>
+                    <p><strong className="text-brand-navy">Payment:</strong> {invoice.paid ? "Paid" : "Pending"}</p>
                     <p><strong className="text-brand-navy">Status:</strong> {invoice.status}</p>
                     {invoice.nextBillingDate && (
                       <p><strong className="text-brand-navy">Next Billing:</strong> {new Date(invoice.nextBillingDate).toLocaleDateString("en-ZA")}</p>

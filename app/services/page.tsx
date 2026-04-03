@@ -84,8 +84,11 @@ export default function ServicesPage() {
             <Zap className="h-4 w-4" />
             Full-service digital agency
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-navy mb-5">
-            Everything your business needs<br /><span className="text-brand-green">to win online</span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-brand-navy mb-5 leading-tight">
+            Everything your business needs
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
+            <span className="text-brand-green">to win online</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             From a simple website to a full CRM + AI stack — we offer everything under one roof,

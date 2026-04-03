@@ -7,6 +7,13 @@ export default async function AdminProjectsPage() {
   if (!userId) return null;
 
   const projects = await prisma.project.findMany({
+    where: {
+      subscription: {
+        is: {
+          paid: true,
+        },
+      },
+    },
     include: {
       profile: { select: { fullName: true, companyName: true, phone: true } },
       subscription: {

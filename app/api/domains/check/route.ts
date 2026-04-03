@@ -26,7 +26,6 @@ export async function GET(req: Request) {
   const suggestions = result.available ? [] : generateDomainSuggestions(domain);
 
   return NextResponse.json({
-    domain,
     ...result,
     suggestions,
     supported,

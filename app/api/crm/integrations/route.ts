@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { readJsonObject, sanitizeBoolean, sanitizeText } from "@/lib/validation";
 
 export async function GET() {
   const { userId } = await auth();
@@ -14,10 +15,17 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
-  const { type, config, active } = body;
+  const body = await readJsonObject(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
 
+  const type = sanitizeText(body.type, { maxLength: 60 });
   if (!type) return NextResponse.json({ error: "type required" }, { status: 400 });
+
+  const configRaw = body.config ?? {};
+  const serializedConfig = JSON.stringify(configRaw);
+  if (serializedConfig.length > 20_000) {
+    return NextResponse.json({ error: "Integration config is too large" }, { status: 400 });
+  }
 
   await prisma.profile.upsert({ where: { id: userId }, create: { id: userId }, update: {} });
 
@@ -27,12 +35,12 @@ export async function POST(req: Request) {
       id: `${userId}_${type}`,
       userId,
       type,
-      config: JSON.stringify(config ?? {}),
-      active: active ?? false,
+      config: serializedConfig,
+      active: sanitizeBoolean(body.active, false),
     },
     update: {
-      config: JSON.stringify(config ?? {}),
-      active: active ?? false,
+      config: serializedConfig,
+      active: sanitizeBoolean(body.active, false),
     },
   });
 

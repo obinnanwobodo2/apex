@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { deleteUserFile, readUserFiles, saveUserFile, type StoredClientFile } from "@/lib/file-storage";
+import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -153,15 +154,11 @@ export async function DELETE(req: Request) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
-  let id = (url.searchParams.get("id") || "").trim();
+  let id = sanitizeText(url.searchParams.get("id"), { maxLength: 100 }) ?? "";
 
   if (!id) {
-    try {
-      const body = await req.json();
-      id = typeof body.id === "string" ? body.id.trim() : "";
-    } catch {
-      // Ignore body parse errors and keep fallback to empty id.
-    }
+    const body = await readJsonObject(req);
+    id = sanitizeText(body?.id, { maxLength: 100 }) ?? "";
   }
 
   if (!id) {

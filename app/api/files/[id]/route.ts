@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/admin";
 import { absoluteStoredPath, findUserFile, listAllStoredFiles } from "@/lib/file-storage";
+import { sanitizeText } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const access = await getAdminAccess();
   if (!access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const fileId = (params.id || "").trim();
+  const fileId = sanitizeText(params.id, { maxLength: 100 });
   if (!fileId) return NextResponse.json({ error: "File id is required" }, { status: 400 });
 
   const file = await findFileForRequest(access.userId, access.isAdmin, fileId);

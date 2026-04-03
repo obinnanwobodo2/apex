@@ -2,16 +2,32 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+1. Copy env template and fill your values:
+
+```bash
+cp .env.local.example .env.local
+```
+
+2. Set `DATABASE_URL` to a PostgreSQL database.
+
+3. Install dependencies and apply schema:
+
+```bash
+npm install
+npm run db:generate
+npm run db:migrate
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+
+Optional pre-deploy validation:
+
+```bash
+npm run deploy:check
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -19,6 +35,34 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Security Hardening
+
+This app includes baseline production protections:
+
+- Auth-protected API routes (Clerk + server-side ownership checks)
+- API request rate limiting in `middleware.ts`
+- Same-origin checks for mutating API requests (CSRF mitigation)
+- Input validation/sanitization via `lib/validation.ts`
+- Security event logging via `lib/security-monitoring.ts`
+- Sensitive webhook signature validation with timing-safe compare
+
+### Required environment variables
+
+- `DATABASE_URL` (PostgreSQL)
+- `NEXT_PUBLIC_APP_URL`
+- `PAYSTACK_SECRET_KEY`
+- `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` for admin allowlist
+- Optional: `SECURITY_ALERT_WEBHOOK_URL` for security alerts
+
+## Monitoring
+
+- Health endpoint: `GET /api/health`
+- Security events are logged as structured JSON with `[security]` prefix.
+- In production, ship logs to your observability platform (Datadog, New Relic, CloudWatch, etc.).
 
 ## Learn More
 
@@ -31,6 +75,45 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Add all environment variables from `.env.local.example` in Vercel Project Settings.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Ensure `DATABASE_URL` points to production PostgreSQL (Supabase/Neon/RDS).
+
+3. Use Clerk production keys (`pk_live`, `sk_live`) and add your live domain in Clerk dashboard.
+
+4. Set `NEXT_PUBLIC_APP_URL` to your exact HTTPS domain (for example `https://yourdomain.com`).
+
+5. Run migrations on production database:
+
+```bash
+npm run db:deploy
+```
+
+6. Run deployment preflight checks:
+
+```bash
+npm run deploy:check
+```
+
+`vercel.json` runs this automatically during Vercel builds via `npm run vercel:build`.
+
+7. Build and start:
+
+```bash
+npm run build
+npm run start
+```
+
+8. Add custom domain in Vercel and configure DNS records at your registrar.
+
+9. Verify post-deploy:
+- `GET /api/health`
+- Login/Register flow
+- Checkout/payments flow
+- Dashboard and CRM data isolation (one user cannot access another user)
+
+## SQLite to PostgreSQL Note
+
+- The Prisma migration history is now PostgreSQL-based.
+- Legacy SQLite migration files were archived under `prisma/sqlite-migrations-archive`.
+- If you have existing SQLite data in `prisma/dev.db`, migrate that data into PostgreSQL before going live.

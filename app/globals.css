@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 @layer base {
   :root {
     --background: 220 33% 99%;
@@ -45,20 +43,12 @@
   body {
     background-color: #f8fafc;
     color: #111827;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
-
-  h1, h2, h3, h4, h5, h6,
-  p, span, a, button, label,
-  li, td, th, input, textarea, select {
-    font-weight: 300 !important;
-  }
-
-  strong, b {
-    font-weight: 400 !important;
+  html {
+    overflow-x: hidden;
   }
 }
 
@@ -142,6 +132,14 @@
   }
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

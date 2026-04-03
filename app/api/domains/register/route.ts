@@ -12,6 +12,7 @@ import {
   normalizeDomain,
   parseDomainMeta,
 } from "@/lib/domain-service";
+import { readJsonObject, sanitizeInt } from "@/lib/validation";
 
 const DOMAIN_PACKAGE = "domain-registration";
 
@@ -62,10 +63,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json();
+  const body = await readJsonObject(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+
   const normalizedDomain = normalizeDomain(typeof body?.domain === "string" ? body.domain : "");
-  const yearsRaw = Number(body?.years);
-  const years = Number.isFinite(yearsRaw) && yearsRaw > 0 ? Math.min(10, Math.floor(yearsRaw)) : 1;
+  const years = sanitizeInt(body?.years, { min: 1, max: 10, fallback: 1 });
 
   if (!normalizedDomain) {
     return NextResponse.json({ error: "Valid domain is required" }, { status: 400 });
@@ -135,7 +137,10 @@ export async function POST(req: Request) {
   const reference = generateReference("DOM");
   const invoiceNumber = generateInvoiceNumber();
   const tld = getDomainTld(normalizedDomain);
-  const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "";
+  const origin = (req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "").trim();
+  if (!origin) {
+    return NextResponse.json({ error: "Application URL is not configured" }, { status: 500 });
+  }
 
   const order = await prisma.subscription.create({
     data: {
@@ -147,7 +152,7 @@ export async function POST(req: Request) {
       status: "pending",
       paid: false,
       businessName: normalizedDomain,
-      contactPerson: profile.fullName ?? user.fullName ?? null,
+      contactPerson: profile.fullName ?? user?.fullName ?? null,
       phone: profile.phone ?? null,
       invoiceNumber,
       description: `Domain registration for ${normalizedDomain} (${years} year${years > 1 ? "s" : ""}).`,
