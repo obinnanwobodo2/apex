@@ -217,7 +217,12 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   if (!isPublicRoute(req)) {
-    await auth.protect();
+    const { userId } = auth();
+    if (!userId) {
+      const signInUrl = new URL("/login", req.url);
+      signInUrl.searchParams.set("redirect_url", req.url);
+      return NextResponse.redirect(signInUrl);
+    }
   }
 
   if (isAdminRoute(req)) {
