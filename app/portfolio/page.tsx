@@ -184,7 +184,7 @@ export default function PortfolioPage() {
           <h2 className="text-3xl font-extrabold text-brand-navy mb-4">Want results like these?</h2>
           <p className="text-gray-500 mb-8">Start with any plan and see measurable growth in your first month.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="xl" asChild><Link href="/#packages">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button size="xl" asChild><Link href="/register">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
             <Button size="xl" variant="outline" asChild><Link href="/contact">Talk to Us First</Link></Button>
           </div>
         </div>

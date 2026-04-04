@@ -1,8 +1,18 @@
 import { SignUp } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
+import { getSafeRedirectPath } from "@/lib/auth-redirect";
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  searchParams?: {
+    redirect_url?: string | string[];
+  };
+}
+
+export default function RegisterPage({ searchParams }: RegisterPageProps) {
+  const redirectUrl = getSafeRedirectPath(searchParams?.redirect_url, "/dashboard/settings?onboarding=1");
+  const signInUrl = `/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-green/10 flex flex-col items-center justify-center px-4">
       <Link href="/" className="mb-8">
@@ -14,8 +24,9 @@ export default function RegisterPage() {
       <SignUp
         routing="path"
         path="/register"
-        signInUrl="/login"
-        fallbackRedirectUrl="/dashboard/settings?onboarding=1"
+        signInUrl={signInUrl}
+        forceRedirectUrl={redirectUrl}
+        fallbackRedirectUrl={redirectUrl}
         appearance={{
           elements: {
             rootBox: "w-full max-w-md",

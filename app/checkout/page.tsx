@@ -32,11 +32,12 @@ interface FormData {
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   const packageId = searchParams.get("package") as AnyPackageId | null;
   const pkg = packageId && ALL_PACKAGES[packageId] ? ALL_PACKAGES[packageId] : null;
   const isCrmPlan = Boolean(pkg?.id?.startsWith("crm-"));
+  const checkoutRedirectTarget = packageId ? `/checkout?package=${packageId}` : "/checkout";
 
   const [form, setForm] = useState<FormData>({
     businessName: "",
@@ -69,11 +70,34 @@ function CheckoutContent() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!isLoaded || isSignedIn || !packageId) return;
+    router.replace(`/register?redirect_url=${encodeURIComponent(checkoutRedirectTarget)}`);
+  }, [isLoaded, isSignedIn, packageId, checkoutRedirectTarget, router]);
+
   if (!pkg) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500">No package selected.</p>
         <Button asChild><Link href="/#packages">View Packages</Link></Button>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-green" />
+        <p className="text-sm text-gray-500">Loading secure checkout...</p>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-green" />
+        <p className="text-sm text-gray-500">Redirecting to sign up...</p>
       </div>
     );
   }
@@ -93,10 +117,9 @@ function CheckoutContent() {
     setLoading(true);
 
     try {
-      // If not logged in, redirect to register with return URL
-      if (!user) {
-        const returnUrl = encodeURIComponent(`/checkout?package=${packageId}`);
-        router.push(`/register?return=${returnUrl}&email=${encodeURIComponent(form.email)}`);
+      // Guard checkout so only authenticated users can pay.
+      if (!isSignedIn) {
+        router.push(`/register?redirect_url=${encodeURIComponent(checkoutRedirectTarget)}`);
         return;
       }
 
@@ -303,7 +326,7 @@ function CheckoutContent() {
                   className="w-full mt-5"
                   size="lg"
                   onClick={handlePayment}
-                  disabled={loading}
+                  disabled={loading || !isLoaded}
                 >
                   {loading ? (
                     <>
