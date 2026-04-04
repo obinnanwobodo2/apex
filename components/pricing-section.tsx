@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { Check, Clock, Zap, Star, Crown, ArrowRight } from "lucide-react";
 import { PACKAGES, formatCurrency } from "@/lib/utils";
 
@@ -20,11 +21,17 @@ const packageColors = {
 
 export default function PricingSection() {
   const router = useRouter();
+  const { isSignedIn } = useUser();
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleChoosePlan = (packageId: string) => {
     setLoading(packageId);
-    router.push(`/checkout?package=${packageId}`);
+    const dashboardUrl = `/dashboard?plan=${encodeURIComponent(packageId)}`;
+    if (isSignedIn) {
+      router.push(dashboardUrl);
+      return;
+    }
+    router.push(`/register?redirect_url=${encodeURIComponent(dashboardUrl)}`);
   };
 
   return (

@@ -124,7 +124,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                   <LogIn className="h-4 w-4" />Sign in
                 </Link>
-                <Link href="/#packages"
+                <Link href="/register"
                   className="px-4 py-2 rounded-lg text-sm font-bold text-white transition-all"
                   style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
                   Get Started
@@ -181,7 +181,7 @@ export default function Navbar() {
                     className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-900 text-center">
                     Sign in
                   </Link>
-                  <Link href="/#packages" onClick={() => setIsOpen(false)}
+                  <Link href="/register" onClick={() => setIsOpen(false)}
                     className="px-4 py-2.5 rounded-lg text-sm font-bold text-white text-center"
                     style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
                     Get Started

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
+  PACKAGES,
   ALL_PACKAGES,
   formatCurrency,
   calculateVAT,
@@ -37,6 +38,7 @@ function CheckoutContent() {
   const packageId = searchParams.get("package") as AnyPackageId | null;
   const pkg = packageId && ALL_PACKAGES[packageId] ? ALL_PACKAGES[packageId] : null;
   const isCrmPlan = Boolean(pkg?.id?.startsWith("crm-"));
+  const isWebsitePackage = Boolean(packageId && packageId in PACKAGES);
   const checkoutRedirectTarget = packageId ? `/checkout?package=${packageId}` : "/checkout";
 
   const [form, setForm] = useState<FormData>({
@@ -71,15 +73,39 @@ function CheckoutContent() {
   }, [user]);
 
   useEffect(() => {
+    if (!packageId || !isWebsitePackage || !isLoaded) return;
+    const dashboardUrl = `/dashboard?plan=${encodeURIComponent(packageId)}`;
+    if (isSignedIn) {
+      router.replace(dashboardUrl);
+      return;
+    }
+    router.replace(`/register?redirect_url=${encodeURIComponent(dashboardUrl)}`);
+  }, [isLoaded, isSignedIn, isWebsitePackage, packageId, router]);
+
+  useEffect(() => {
     if (!isLoaded || isSignedIn || !packageId) return;
+    if (isWebsitePackage) return;
     router.replace(`/register?redirect_url=${encodeURIComponent(checkoutRedirectTarget)}`);
-  }, [isLoaded, isSignedIn, packageId, checkoutRedirectTarget, router]);
+  }, [isLoaded, isSignedIn, isWebsitePackage, packageId, checkoutRedirectTarget, router]);
 
   if (!pkg) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500">No package selected.</p>
         <Button asChild><Link href="/#packages">View Packages</Link></Button>
+      </div>
+    );
+  }
+
+  if (isWebsitePackage) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-sm text-gray-500">Website packages are now purchasable only from your client dashboard.</p>
+        <Button asChild>
+          <Link href={isSignedIn ? `/dashboard?plan=${encodeURIComponent(packageId ?? "")}` : "/register?redirect_url=%2Fdashboard"}>
+            Go to Client Dashboard
+          </Link>
+        </Button>
       </div>
     );
   }

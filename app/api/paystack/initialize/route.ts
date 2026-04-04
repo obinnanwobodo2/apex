@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { initializeTransaction, generateReference } from "@/lib/paystack";
-import { ALL_PACKAGES, calculateTotal, type AnyPackageId } from "@/lib/utils";
+import { ALL_PACKAGES, PACKAGES, calculateTotal, type AnyPackageId } from "@/lib/utils";
 import { logApplicationError } from "@/lib/security-monitoring";
 import {
   readJsonObject,
@@ -122,6 +122,15 @@ export async function POST(req: Request) {
     const normalizedBusinessName = sanitizeText(businessName, { maxLength: 160 });
     if (!normalizedPackageId || !normalizedBusinessName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const isWebsitePackage = normalizedPackageId in PACKAGES;
+    const purchaseSource = sanitizeText(body.purchaseSource, { maxLength: 32 });
+    if (isWebsitePackage && purchaseSource !== "dashboard") {
+      return NextResponse.json(
+        { error: "Website packages can only be purchased from the client dashboard." },
+        { status: 403 }
+      );
     }
 
     const pkg = ALL_PACKAGES[normalizedPackageId];

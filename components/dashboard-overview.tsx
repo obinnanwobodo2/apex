@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Globe, TrendingUp, Calendar, CreditCard, ArrowUpRight,
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, ALL_PACKAGES } from "@/lib/utils";
+import { formatCurrency, ALL_PACKAGES, type PackageId } from "@/lib/utils";
 import PlansFlow from "@/components/plans-flow";
 
 export interface SerializedSubscription {
@@ -64,11 +64,20 @@ const PROJECT_STATUS_LABELS: Record<string, string> = {
 export default function DashboardOverview({
   subscriptions,
   projects,
+  initialPlanId = null,
 }: {
   subscriptions: SerializedSubscription[];
   projects: SerializedProject[];
+  initialPlanId?: PackageId | null;
 }) {
   const [flowOpen, setFlowOpen] = useState(false);
+  const didAutoOpen = useRef(false);
+
+  useEffect(() => {
+    if (!initialPlanId || didAutoOpen.current) return;
+    didAutoOpen.current = true;
+    setFlowOpen(true);
+  }, [initialPlanId]);
 
   const activeSub = subscriptions.find((s) => s.status === "active" && s.paid);
   const pkg = activeSub ? ALL_PACKAGES[activeSub.package as keyof typeof ALL_PACKAGES] : null;
@@ -337,7 +346,11 @@ export default function DashboardOverview({
         </CardContent>
       </Card>
 
-      <PlansFlow open={flowOpen} onClose={() => setFlowOpen(false)} />
+      <PlansFlow
+        open={flowOpen}
+        onClose={() => setFlowOpen(false)}
+        initialPackageId={initialPlanId}
+      />
     </div>
   );
 }

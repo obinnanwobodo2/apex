@@ -1,10 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import DashboardOverview from "@/components/dashboard-overview";
+import { PACKAGES, type PackageId } from "@/lib/utils";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams?: {
+    plan?: string;
+  };
+}
+
+function getInitialPlanId(value: string | undefined): PackageId | null {
+  if (!value) return null;
+  const plan = value.trim() as PackageId;
+  return plan in PACKAGES ? plan : null;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { userId } = await auth();
   if (!userId) return null;
+  const initialPlanId = getInitialPlanId(searchParams?.plan);
 
   // Ensure profile row exists for this Clerk user
   await prisma.profile.upsert({
@@ -50,6 +64,7 @@ export default async function DashboardPage() {
     <DashboardOverview
       subscriptions={serializedSubs}
       projects={serializedProjects}
+      initialPlanId={initialPlanId}
     />
   );
 }

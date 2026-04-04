@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import {
   Check, X, ChevronRight, ChevronLeft, Loader2, Lock,
@@ -421,6 +421,7 @@ function StepInvoice({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           packageId: pkg.id,
+          purchaseSource: "dashboard",
           email: user?.primaryEmailAddress?.emailAddress,
           businessName: form.businessName,
           contactPerson: form.contactPerson,
@@ -601,9 +602,10 @@ function StepInvoice({
 interface PlansFlowProps {
   open: boolean;
   onClose: () => void;
+  initialPackageId?: PackageId | null;
 }
 
-export default function PlansFlow({ open, onClose }: PlansFlowProps) {
+export default function PlansFlow({ open, onClose, initialPackageId = null }: PlansFlowProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedPkg, setSelectedPkg] = useState<Package | null>(null);
   const [form, setForm] = useState<OnboardingForm>(EMPTY_FORM);
@@ -616,6 +618,15 @@ export default function PlansFlow({ open, onClose }: PlansFlowProps) {
     onClose();
     setTimeout(() => { setStep(1); setSelectedPkg(null); setForm(EMPTY_FORM); }, 300);
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (!initialPackageId) return;
+    const pkg = PACKAGES[initialPackageId];
+    if (!pkg) return;
+    setSelectedPkg(pkg);
+    setStep(2);
+  }, [open, initialPackageId]);
 
   if (!open) return null;
 
