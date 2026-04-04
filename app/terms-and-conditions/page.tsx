@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import TermlyPolicyEmbed from "@/components/termly-policy-embed";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | Apex Visuals",
@@ -54,6 +55,9 @@ const SECTIONS = [
   },
 ];
 
+const TERMLY_TERMS_OF_USE_ID =
+  process.env.NEXT_PUBLIC_TERMLY_TERMS_OF_USE_ID?.trim() || null;
+
 export default function TermsAndConditionsPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -67,12 +71,19 @@ export default function TermsAndConditionsPage() {
 
       <section className="py-14 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
-          {SECTIONS.map((section) => (
-            <article key={section.title} className="rounded-2xl border border-gray-200 bg-white p-6">
-              <h2 className="text-xl font-bold text-brand-navy mb-3">{section.title}</h2>
-              <p className="text-gray-600 leading-relaxed">{section.body}</p>
-            </article>
-          ))}
+          {TERMLY_TERMS_OF_USE_ID ? (
+            <TermlyPolicyEmbed
+              policyId={TERMLY_TERMS_OF_USE_ID}
+              title="Terms of Use"
+            />
+          ) : (
+            SECTIONS.map((section) => (
+              <article key={section.title} className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h2 className="text-xl font-bold text-brand-navy mb-3">{section.title}</h2>
+                <p className="text-gray-600 leading-relaxed">{section.body}</p>
+              </article>
+            ))
+          )}
         </div>
       </section>
 

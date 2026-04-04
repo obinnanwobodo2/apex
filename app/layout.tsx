@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
+import RuntimeErrorListener from "@/components/runtime-error-listener";
 import "./globals.css";
 
 const sansFont = localFont({
@@ -30,7 +31,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={sansFont.className}>{children}</body>
+        <body className={sansFont.className}>
+          <RuntimeErrorListener />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

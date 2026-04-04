@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
 import { getAdminAccess } from "@/lib/admin";
+import { logApplicationError } from "@/lib/security-monitoring";
 import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
@@ -87,6 +88,15 @@ Draft a reply the admin can send to the client.`;
     if (!reply.trim()) throw new Error("Empty AI response");
     return NextResponse.json({ reply, source: "anthropic" });
   } catch (error) {
+    await logApplicationError({
+      source: "api/admin/ai/support",
+      severity: "warn",
+      message: "Admin support AI fell back to offline response",
+      route: "/api/admin/ai/support",
+      userId: access.userId,
+      error,
+      details: { ticketId: ticket.id },
+    });
     const fallback = fallbackSupportReply({
       subject: ticket.subject,
       message: ticket.message,

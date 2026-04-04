@@ -134,7 +134,22 @@ export function sanitizeEnum<T extends string>(
   return match ?? fallback;
 }
 
-export async function readJsonObject(req: Request): Promise<Record<string, unknown> | null> {
+export async function readJsonObject(
+  req: Request,
+  options: { maxBytes?: number; requireContentType?: boolean } = {}
+): Promise<Record<string, unknown> | null> {
+  const maxBytes = options.maxBytes ?? 1_000_000;
+  const requireContentType = options.requireContentType ?? true;
+
+  const contentType = (req.headers.get("content-type") ?? "").toLowerCase();
+  if (requireContentType && !contentType.includes("application/json")) return null;
+
+  const rawLength = req.headers.get("content-length");
+  if (rawLength) {
+    const parsedLength = Number(rawLength);
+    if (Number.isFinite(parsedLength) && parsedLength > maxBytes) return null;
+  }
+
   try {
     const parsed = await req.json();
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;

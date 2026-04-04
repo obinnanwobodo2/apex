@@ -42,9 +42,13 @@ This app includes baseline production protections:
 
 - Auth-protected API routes (Clerk + server-side ownership checks)
 - API request rate limiting in `middleware.ts`
+- Locked-down API CORS policy with trusted-origin preflight checks
 - Same-origin checks for mutating API requests (CSRF mitigation)
+- Strict security headers (CSP, HSTS in production, COOP/CORP, frame/object restrictions)
 - Input validation/sanitization via `lib/validation.ts`
 - Security event logging via `lib/security-monitoring.ts`
+- Frontend runtime error capture + reporting endpoint (`/api/monitoring/client-errors`)
+- Route/global error boundaries for clean user-facing recovery screens
 - Sensitive webhook signature validation with timing-safe compare
 
 ### Required environment variables
@@ -55,13 +59,21 @@ This app includes baseline production protections:
 - `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
-- `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` for admin allowlist
+- `OWNER_USER_ID` (recommended) or `OWNER_EMAIL` to lock admin to only your account
+- Optional fallback: `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` for admin allowlist
+- Optional: `ALLOWED_CORS_ORIGINS` (comma-separated trusted browser origins)
 - Optional: `SECURITY_ALERT_WEBHOOK_URL` for security alerts
+- Optional: `APP_ALERT_WEBHOOK_URL` for non-security runtime/crash alerts
+- Optional: `NEXT_PUBLIC_TERMLY_PRIVACY_POLICY_ID` + `NEXT_PUBLIC_TERMLY_TERMS_OF_USE_ID`
+
+If you use Supabase APIs with Clerk JWTs, apply [`supabase-clerk-rls.sql`](./supabase-clerk-rls.sql).
 
 ## Monitoring
 
 - Health endpoint: `GET /api/health`
+- Frontend/runtime error endpoint: `POST /api/monitoring/client-errors`
 - Security events are logged as structured JSON with `[security]` prefix.
+- Application errors are logged as structured JSON with `[app]` prefix.
 - In production, ship logs to your observability platform (Datadog, New Relic, CloudWatch, etc.).
 
 ## Learn More
@@ -80,6 +92,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 2. Ensure `DATABASE_URL` points to production PostgreSQL (Supabase/Neon/RDS).
 
 3. Use Clerk production keys (`pk_live`, `sk_live`) and add your live domain in Clerk dashboard.
+   - Password reset link/code expiry is controlled by Clerk settings and defaults.
+   - If your dashboard allows custom reset/verification lifetime, set it to 30 minutes there.
+   - This cannot be force-overridden purely from app code.
 
 4. Set `NEXT_PUBLIC_APP_URL` to your exact HTTPS domain (for example `https://yourdomain.com`).
 
@@ -108,6 +123,7 @@ npm run start
 
 9. Verify post-deploy:
 - `GET /api/health`
+- `POST /api/monitoring/client-errors` returns `{ received: true }`
 - Login/Register flow
 - Checkout/payments flow
 - Dashboard and CRM data isolation (one user cannot access another user)

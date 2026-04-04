@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { verifyTransaction } from "@/lib/paystack";
 import { processSuccessfulPayment } from "@/lib/payment-processing";
+import { logApplicationError } from "@/lib/security-monitoring";
 import { sanitizeText } from "@/lib/validation";
 
 export async function GET(req: Request) {
@@ -51,7 +52,13 @@ export async function GET(req: Request) {
       warning: processed.warning ?? null,
     });
   } catch (err) {
-    console.error("Verify error:", err);
+    await logApplicationError({
+      source: "api/paystack/verify",
+      severity: "critical",
+      message: "Paystack verification failed",
+      route: "/api/paystack/verify",
+      error: err,
+    });
     return NextResponse.json({ success: false, error: "Verification failed" }, { status: 500 });
   }
 }

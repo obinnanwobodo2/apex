@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import Anthropic from "@anthropic-ai/sdk";
+import { logApplicationError } from "@/lib/security-monitoring";
 import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
@@ -59,7 +60,15 @@ You can help with: lead scoring, email drafting, deal insights, follow-up remind
     });
     reply = response.content[0].type === "text" ? response.content[0].text : "";
     if (!reply.trim()) throw new Error("Empty AI response");
-  } catch {
+  } catch (error) {
+    await logApplicationError({
+      source: "api/crm/ai",
+      severity: "warn",
+      message: "CRM AI fell back to static response",
+      route: "/api/crm/ai",
+      userId,
+      error,
+    });
     reply = `Quick CRM guidance:
 - Prioritize open deals with highest value and highest close probability.
 - Send follow-up messages to stalled deals older than 7 days.

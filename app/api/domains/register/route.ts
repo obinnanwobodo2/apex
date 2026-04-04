@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { initializeTransaction, generateReference } from "@/lib/paystack";
 import { calculateTotal, generateInvoiceNumber } from "@/lib/utils";
+import { logApplicationError } from "@/lib/security-monitoring";
 import {
   buildDomainPurchaseMeta,
   checkDomainAvailability,
@@ -195,6 +196,13 @@ export async function POST(req: Request) {
       priceLabel: formatDomainPrice(normalizedDomain),
     });
   } catch (err) {
+    await logApplicationError({
+      source: "api/domains/register",
+      severity: "critical",
+      message: "Domain payment initialization failed",
+      route: "/api/domains/register",
+      error: err,
+    });
     await prisma.subscription.update({
       where: { id: order.id },
       data: {

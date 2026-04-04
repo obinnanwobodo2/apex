@@ -79,6 +79,10 @@ function requireOneOf(names) {
   }
 }
 
+function warnIfMissing(name, message) {
+  if (!hasEnv(name)) warnings.push(message);
+}
+
 function validateUrl(name, { httpsOnly = false, allowLocalHttp = false } = {}) {
   const value = getEnv(name);
   if (!value) return;
@@ -140,11 +144,29 @@ requireEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
 requireEnv("CLERK_SECRET_KEY");
 requireEnv("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY");
 requireEnv("PAYSTACK_SECRET_KEY");
-requireOneOf(["ADMIN_EMAILS", "ADMIN_USER_IDS"]);
+requireOneOf(["OWNER_USER_ID", "OWNER_EMAIL", "ADMIN_EMAILS", "ADMIN_USER_IDS"]);
 
 validateDatabaseUrl();
 validateUrl("NEXT_PUBLIC_APP_URL", { httpsOnly: true, allowLocalHttp: true });
 validateUrl("SECURITY_ALERT_WEBHOOK_URL", { httpsOnly: true });
+validateUrl("APP_ALERT_WEBHOOK_URL", { httpsOnly: true });
+
+if (hasEnv("ALLOWED_CORS_ORIGINS")) {
+  const values = getEnv("ALLOWED_CORS_ORIGINS")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  for (const value of values) {
+    try {
+      const parsed = new URL(value);
+      if (isProduction && parsed.protocol !== "https:") {
+        addIssue(`ALLOWED_CORS_ORIGINS contains a non-https origin: ${value}`);
+      }
+    } catch {
+      addIssue(`ALLOWED_CORS_ORIGINS has an invalid URL value: ${value}`);
+    }
+  }
+}
 
 if (hasEnv("ADMIN_BASIC_USERNAME") !== hasEnv("ADMIN_BASIC_PASSWORD")) {
   addIssue("ADMIN_BASIC_USERNAME and ADMIN_BASIC_PASSWORD must both be set or both be empty.");
@@ -158,6 +180,29 @@ validateKeyPrefix("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY", ["pk_test"]);
 validateKeyPrefix("PAYSTACK_SECRET_KEY", ["sk_test"]);
 validateKeyPrefix("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", ["pk_test"]);
 validateKeyPrefix("CLERK_SECRET_KEY", ["sk_test"]);
+
+if (isProduction && hasEnv("ADMIN_EMAILS") && !hasEnv("OWNER_USER_ID") && !hasEnv("OWNER_EMAIL")) {
+  warnings.push(
+    "OWNER_USER_ID/OWNER_EMAIL is not set. Admin access relies on ADMIN_EMAILS/ADMIN_USER_IDS only."
+  );
+}
+
+warnIfMissing(
+  "SECURITY_ALERT_WEBHOOK_URL",
+  "SECURITY_ALERT_WEBHOOK_URL is not set. Security events will only be logged locally."
+);
+warnIfMissing(
+  "APP_ALERT_WEBHOOK_URL",
+  "APP_ALERT_WEBHOOK_URL is not set. Application crash alerts will use SECURITY_ALERT_WEBHOOK_URL fallback."
+);
+warnIfMissing(
+  "NEXT_PUBLIC_TERMLY_PRIVACY_POLICY_ID",
+  "NEXT_PUBLIC_TERMLY_PRIVACY_POLICY_ID is missing. Privacy page will show fallback static text."
+);
+warnIfMissing(
+  "NEXT_PUBLIC_TERMLY_TERMS_OF_USE_ID",
+  "NEXT_PUBLIC_TERMLY_TERMS_OF_USE_ID is missing. Terms page will show fallback static text."
+);
 
 if (errors.length) {
   console.error("[deploy-check] Failed:");

@@ -15,8 +15,14 @@ export interface StoredClientFile {
 
 const ROOT = path.join(process.cwd(), "storage", "client-files");
 
+function normalizeUserIdSegment(userId: string) {
+  const normalized = userId.trim().replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 120);
+  if (!normalized) throw new Error("Invalid user id");
+  return normalized;
+}
+
 function userRoot(userId: string) {
-  return path.join(ROOT, userId);
+  return path.join(ROOT, normalizeUserIdSegment(userId));
 }
 
 function userFilesDir(userId: string) {

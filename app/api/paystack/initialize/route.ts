@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { initializeTransaction, generateReference } from "@/lib/paystack";
 import { ALL_PACKAGES, calculateTotal, type AnyPackageId } from "@/lib/utils";
+import { logApplicationError } from "@/lib/security-monitoring";
 import {
   readJsonObject,
   sanitizeDate,
@@ -224,7 +225,13 @@ export async function POST(req: Request) {
       reference,
     });
   } catch (err) {
-    console.error("Paystack init error:", err);
+    await logApplicationError({
+      source: "api/paystack/initialize",
+      severity: "critical",
+      message: "Paystack initialization failed",
+      route: "/api/paystack/initialize",
+      error: err,
+    });
     return NextResponse.json({ error: "Payment initialization failed" }, { status: 500 });
   }
 }

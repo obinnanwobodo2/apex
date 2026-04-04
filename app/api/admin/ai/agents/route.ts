@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAdminAccess } from "@/lib/admin";
+import { logApplicationError } from "@/lib/security-monitoring";
 import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "not-configured" });
@@ -74,6 +75,15 @@ ${instruction ? `Extra instruction: ${instruction}` : ""}`;
     if (!output.trim()) throw new Error("Empty AI output");
     return NextResponse.json({ output, source: "anthropic" });
   } catch (error) {
+    await logApplicationError({
+      source: "api/admin/ai/agents",
+      severity: "warn",
+      message: "Admin AI agent fell back to offline response",
+      route: "/api/admin/ai/agents",
+      userId: access.userId,
+      error,
+      details: { agent },
+    });
     return NextResponse.json({
       output: fallbackReply(agent, input),
       source: "fallback",

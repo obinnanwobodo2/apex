@@ -32,7 +32,7 @@ const FOOTER_LINKS = {
 
 const LEGAL = [
   { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Terms of Use", href: "/terms-and-conditions" },
   { label: "Cookie Policy", href: "/cookie-policy" },
   { label: "Refund Policy", href: "/refund-policy" },
 ];
