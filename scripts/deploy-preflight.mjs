@@ -136,8 +136,6 @@ console.log(`[deploy-check] Running preflight for mode: ${runtimeMode}`);
 
 requireEnv("DATABASE_URL");
 requireEnv("NEXT_PUBLIC_APP_URL");
-requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 requireEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
 requireEnv("CLERK_SECRET_KEY");
 requireEnv("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY");
@@ -146,7 +144,6 @@ requireOneOf(["ADMIN_EMAILS", "ADMIN_USER_IDS"]);
 
 validateDatabaseUrl();
 validateUrl("NEXT_PUBLIC_APP_URL", { httpsOnly: true, allowLocalHttp: true });
-validateUrl("NEXT_PUBLIC_SUPABASE_URL", { httpsOnly: true });
 validateUrl("SECURITY_ALERT_WEBHOOK_URL", { httpsOnly: true });
 
 if (hasEnv("ADMIN_BASIC_USERNAME") !== hasEnv("ADMIN_BASIC_PASSWORD")) {
