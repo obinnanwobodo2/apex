@@ -230,15 +230,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       <div className="flex-1 lg:ml-52 flex flex-col min-h-screen">
         <header className="bg-white border-b border-gray-200 sticky top-0 z-20" style={{ height: "52px" }}>
-          <div className="px-4 sm:px-6 h-full flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="px-4 sm:px-6 h-full flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <button className="lg:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors" onClick={() => setSidebarOpen(true)}>
                 <Menu className="h-4 w-4" />
               </button>
-              <span className="text-sm font-semibold text-gray-900">{activeLabel}</span>
+              <span className="truncate text-sm font-semibold text-gray-900">{activeLabel}</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               <button className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
                 <Search className="h-4 w-4" />
               </button>
@@ -273,7 +273,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
               <div className="relative" data-profile>
                 <button onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
-                  className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                  className="flex items-center gap-2 px-1.5 py-1.5 sm:pl-2 sm:pr-2.5 rounded-lg hover:bg-gray-100 transition-colors">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={avatarUrl} />
                     <AvatarFallback className="bg-brand-green/20 text-brand-green text-[9px] font-bold">{initials}</AvatarFallback>

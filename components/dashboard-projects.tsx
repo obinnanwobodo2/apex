@@ -41,13 +41,13 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
   const filtered = tab === "all" ? initialProjects : initialProjects.filter((p) => p.status === tab);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6 overflow-x-hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-extrabold text-brand-navy">Projects</h1>
           <p className="text-sm text-gray-400 mt-0.5">{initialProjects.length} total projects</p>
         </div>
-        <Button onClick={() => setFlowOpen(true)}>
+        <Button onClick={() => setFlowOpen(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />Request New
         </Button>
       </div>
@@ -72,7 +72,7 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
       </div>
 
       {/* Tab filter */}
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
