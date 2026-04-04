@@ -19,7 +19,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <Image src="/logo.svg" alt="Apex Visuals" width={150} height={60} className="h-10 w-auto" />
       </Link>
       <SignUp
-        routing="hash"
+        routing="path"
+        path="/register"
         signInUrl={signInUrl}
         forceRedirectUrl={redirectUrl}
         fallbackRedirectUrl={redirectUrl}

@@ -19,7 +19,8 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <Image src="/logo.svg" alt="Apex Visuals" width={150} height={60} className="h-10 w-auto" />
       </Link>
       <SignIn
-        routing="hash"
+        routing="path"
+        path="/login"
         signUpUrl={signUpUrl}
         forceRedirectUrl={redirectUrl}
         fallbackRedirectUrl={redirectUrl}
