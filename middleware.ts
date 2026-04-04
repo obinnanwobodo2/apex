@@ -26,6 +26,7 @@ const isWebhookRoute = createRouteMatcher(["/api/paystack/webhook(.*)"]);
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const ALLOWED_CORS_METHODS = "GET,POST,PUT,PATCH,DELETE,OPTIONS";
 const ALLOWED_CORS_HEADERS = "Content-Type, Authorization, X-Requested-With, X-Request-Id";
+const ENABLE_STRICT_CSP = process.env.ENABLE_STRICT_CSP === "true";
 
 interface RateLimitBucket {
   count: number;
@@ -205,6 +206,7 @@ function buildContentSecurityPolicy() {
     "'self'",
     "'unsafe-inline'",
     "https://js.clerk.com",
+    "https://clerk.apexvisual.co.za",
     "https://checkout.paystack.com",
     "https://app.termly.io",
   ];
@@ -219,8 +221,8 @@ function buildContentSecurityPolicy() {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.clerk.com https://*.clerk.accounts.dev",
-    "frame-src 'self' https://checkout.paystack.com https://app.termly.io https://*.clerk.com https://*.clerk.accounts.dev",
+    "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za",
+    "frame-src 'self' https://checkout.paystack.com https://app.termly.io https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -240,12 +242,13 @@ function applySecurityHeaders(res: NextResponse, options: HeaderOptions) {
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=(), payment=()"
   );
-  res.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  // Keep auth/OAuth popup flows compatible.
+  res.headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.headers.set("Cross-Origin-Resource-Policy", "same-site");
   res.headers.set("X-DNS-Prefetch-Control", "off");
   res.headers.set("X-Permitted-Cross-Domain-Policies", "none");
   res.headers.set("Origin-Agent-Cluster", "?1");
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && ENABLE_STRICT_CSP) {
     res.headers.set("Content-Security-Policy", buildContentSecurityPolicy());
   }
 
