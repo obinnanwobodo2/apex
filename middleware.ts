@@ -4,6 +4,7 @@ import { logSecurityEvent } from "@/lib/security-monitoring";
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/_clerk(.*)",
   "/about(.*)",
   "/services(.*)",
   "/portfolio(.*)",
@@ -11,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   "/client-dashboard(.*)",
   "/login(.*)",
   "/register(.*)",
+  "/auth/callback(.*)",
   "/checkout(.*)",
   "/success(.*)",
   "/api/health(.*)",
