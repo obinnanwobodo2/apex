@@ -18,12 +18,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
       <Link href="/" className="mb-8">
         <Image src="/logo.svg" alt="Apex Visuals" width={150} height={60} className="h-10 w-auto" />
       </Link>
-      <div className="w-full max-w-md mb-4 rounded-xl border border-brand-green/20 bg-brand-green/5 px-4 py-3 text-xs text-brand-navy">
-        We ask for additional identity and business details after signup to keep client accounts secure.
-      </div>
       <SignUp
-        routing="path"
-        path="/register"
+        routing="hash"
         signInUrl={signInUrl}
         forceRedirectUrl={redirectUrl}
         fallbackRedirectUrl={redirectUrl}
