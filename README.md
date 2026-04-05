@@ -59,8 +59,8 @@ This app includes baseline production protections:
 - `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
-- `OWNER_USER_ID` (recommended) or `OWNER_EMAIL` to lock admin to only your account
-- Optional fallback: `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` for admin allowlist
+- `OWNER_USER_ID` (recommended) or `OWNER_EMAIL` to lock admin to only one owner account
+- Optional legacy fallback: `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` (only first value is treated as owner)
 - Optional: `ALLOWED_CORS_ORIGINS` (comma-separated trusted browser origins)
 - Optional: `SECURITY_ALERT_WEBHOOK_URL` for security alerts
 - Optional: `APP_ALERT_WEBHOOK_URL` for non-security runtime/crash alerts

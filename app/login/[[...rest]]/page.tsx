@@ -12,6 +12,10 @@ interface LoginPageProps {
 export default function LoginPage({ searchParams }: LoginPageProps) {
   const redirectUrl = getSafeRedirectPath(searchParams?.redirect_url, "/dashboard");
   const signUpUrl = `/register?redirect_url=${encodeURIComponent(redirectUrl)}`;
+  const isAdminLoginFlow =
+    redirectUrl === "/admin" ||
+    redirectUrl.startsWith("/admin/") ||
+    redirectUrl.startsWith("/api/admin");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-green/10 flex flex-col items-center justify-center px-4">
@@ -21,7 +25,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       <SignIn
         routing="path"
         path="/login"
-        signUpUrl={signUpUrl}
+        {...(!isAdminLoginFlow ? { signUpUrl } : {})}
         forceRedirectUrl={redirectUrl}
         fallbackRedirectUrl={redirectUrl}
         appearance={{
@@ -30,7 +34,9 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             card: "rounded-2xl shadow-lg border border-gray-100",
             headerTitle: "text-brand-navy font-extrabold",
             formButtonPrimary: "bg-brand-green hover:bg-brand-green/90 text-white",
-            footerActionLink: "text-brand-green hover:underline",
+            ...(isAdminLoginFlow
+              ? { footerAction: "hidden", footerActionLink: "hidden" }
+              : { footerActionLink: "text-brand-green hover:underline" }),
           },
         }}
       />

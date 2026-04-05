@@ -16,9 +16,10 @@ export default function AdminSettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-gray-600 space-y-2">
-          <p>Configure `ADMIN_USER_IDS` and/or `ADMIN_EMAILS` in your environment to control admin access.</p>
+          <p>Admin is locked to one owner account only.</p>
+          <p>Set `OWNER_USER_ID` (recommended) or `OWNER_EMAIL` in environment variables.</p>
           <p className="text-xs text-gray-400">
-            Example: `ADMIN_EMAILS=you@yourcompany.com,ops@yourcompany.com`
+            Example: `OWNER_EMAIL=you@yourcompany.com`
           </p>
         </CardContent>
       </Card>
@@ -36,4 +37,3 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
-

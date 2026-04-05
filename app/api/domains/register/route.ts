@@ -57,13 +57,6 @@ export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!process.env.DOMAIN_PROVIDER_REGISTER_URL) {
-    return NextResponse.json(
-      { error: "Domain registrar integration is not configured. Add DOMAIN_PROVIDER_REGISTER_URL." },
-      { status: 503 }
-    );
-  }
-
   const body = await readJsonObject(req);
   if (!body) return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
 
