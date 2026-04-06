@@ -103,24 +103,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team section */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-brand-navy text-center mb-12">The team behind your website</h2>
-          <div className="flex flex-col items-center gap-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-sm w-full text-center">
-              <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-brand-green/20 mx-auto mb-4 flex items-center justify-center text-gray-400 text-xs">
-                [Founder photo]
-              </div>
-              <div className="font-bold text-brand-navy text-lg">[Founder name]</div>
-              <div className="text-brand-green text-sm font-medium mb-3">[Title]</div>
-              <p className="text-gray-500 text-sm leading-relaxed mb-4">[2-line bio describing background and expertise]</p>
-              <a href="[LinkedIn URL]" className="text-xs text-brand-green underline">[LinkedIn URL]</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
