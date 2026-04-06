@@ -13,7 +13,7 @@
     "db:studio": "prisma studio",
     "deploy:check": "node scripts/deploy-preflight.mjs",
     "deploy:ready": "npm run deploy:check && npm run db:generate && npm run build",
-    "vercel:build": "npm run deploy:check && npm run db:generate && npm run build"
+    "vercel:build": "npm run deploy:check && npx prisma db push --accept-data-loss && npm run db:generate && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.81.0",

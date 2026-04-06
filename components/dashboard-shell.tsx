@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, CreditCard, Settings, LogOut,
   Bell, Menu, ChevronRight, User, Users, BarChart3,
-  MessageCircle, FolderKanban, X, Search, FileText, Sparkles, Server,
+  MessageCircle, FolderKanban, X, Search, FileText, Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -23,7 +23,6 @@ const NAV_ITEMS = [
   { href: "/dashboard/projects", icon: FolderKanban, label: "My Project" },
   { href: "/dashboard/messages", icon: MessageCircle, label: "Messages" },
   { href: "/dashboard/files", icon: FileText, label: "Files" },
-  { href: "/dashboard/hosting", icon: Server, label: "Hosting" },
   { href: "/dashboard/billing", icon: CreditCard, label: "Billing & Cart" },
   { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/dashboard/support", icon: MessageCircle, label: "Support" },

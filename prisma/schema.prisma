@@ -82,8 +82,21 @@ model Project {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  profile      Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  profile      Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  messages     ProjectMessage[]
+}
+
+model ProjectMessage {
+  id         String    @id @default(cuid())
+  projectId  String
+  userId     String
+  senderRole String    @default("client") // "client" | "admin"
+  body       String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model SupportTicket {

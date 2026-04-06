@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import DashboardOverview from "@/components/dashboard-overview";
@@ -45,11 +45,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     : [[], []];
 
   if (userId) {
-    // Ensure profile row exists for this Clerk user.
+    // Ensure profile row exists and sync display name from Clerk.
+    const clerkUser = await currentUser();
+    const fullName = clerkUser?.fullName ??
+      ([clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || null);
     await prisma.profile.upsert({
       where: { id: userId },
-      create: { id: userId },
-      update: {},
+      create: { id: userId, fullName },
+      update: fullName ? { fullName } : {},
     });
   }
 

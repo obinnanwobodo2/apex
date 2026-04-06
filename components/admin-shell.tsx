@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, FolderKanban, CreditCard,
-  Settings, LogOut, Menu, ChevronRight, Shield, LifeBuoy, Bot, FileImage,
+  Settings, LogOut, Menu, ChevronRight, Shield, LifeBuoy, FileImage, MessageCircle,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -15,10 +15,10 @@ const NAV_ITEMS = [
   { href: "/admin", icon: <LayoutDashboard className="h-4 w-4" />, label: "Overview" },
   { href: "/admin/clients", icon: <Users className="h-4 w-4" />, label: "Clients" },
   { href: "/admin/projects", icon: <FolderKanban className="h-4 w-4" />, label: "Projects" },
+  { href: "/admin/messages", icon: <MessageCircle className="h-4 w-4" />, label: "Messages" },
   { href: "/admin/files", icon: <FileImage className="h-4 w-4" />, label: "Files" },
   { href: "/admin/billing", icon: <CreditCard className="h-4 w-4" />, label: "Revenue" },
   { href: "/admin/support", icon: <LifeBuoy className="h-4 w-4" />, label: "Support" },
-  { href: "/admin/ai", icon: <Bot className="h-4 w-4" />, label: "AI Agents" },
   { href: "/admin/settings", icon: <Settings className="h-4 w-4" />, label: "Settings" },
 ];
 
@@ -56,13 +56,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           );
         })}
 
-        <div className="pt-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Client View</p>
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-all">
-            <LayoutDashboard className="h-4 w-4 text-gray-400" />
-            Client Dashboard
-          </Link>
-        </div>
       </nav>
 
       <Separator />
