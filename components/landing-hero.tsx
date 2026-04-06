@@ -76,9 +76,18 @@ export default function LandingHero() {
           </Link>
           <Link href="/contact"
             className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 border border-gray-300 bg-white hover:bg-gray-100 hover:border-gray-400 transition-all">
-            <Play className="h-4 w-4" />Book a Free Call
+            <Play className="h-4 w-4" />See if we&apos;re a fit
           </Link>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-xs text-gray-400 mb-6 -mt-8"
+        >
+          We review all enquiries within 2 hours on weekdays. Limited onboarding spots available each month.
+        </motion.p>
 
         {/* Trust strip */}
         <motion.div

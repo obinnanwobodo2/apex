@@ -4,10 +4,12 @@ import Link from "next/link";
 import { FolderPlus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 
 export default async function NewProjectPage() {
   const { userId } = await auth();
-  if (!userId) redirect("/login");
+  const guestPreview = !userId && isDashboardGuestPreviewEnabled();
+  if (!userId && !guestPreview) redirect("/login");
 
   return (
     <Card>

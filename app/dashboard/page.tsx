@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import DashboardOverview from "@/components/dashboard-overview";
 import { PACKAGES, type PackageId } from "@/lib/utils";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 
 interface DashboardPageProps {
   searchParams?: {
@@ -18,34 +19,39 @@ function getInitialPlanId(value: string | undefined): PackageId | null {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { userId } = await auth();
-  if (!userId) redirect("/login");
+  const guestPreview = !userId && isDashboardGuestPreviewEnabled();
+  if (!userId && !guestPreview) redirect("/login");
   const initialPlanId = getInitialPlanId(searchParams?.plan);
 
-  // Ensure profile row exists for this Clerk user
-  await prisma.profile.upsert({
-    where: { id: userId },
-    create: { id: userId },
-    update: {},
-  });
-
-  const [subscriptions, projects] = await Promise.all([
-    prisma.subscription.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.project.findMany({
-      where: {
-        userId,
-        subscription: {
-          is: {
-            paid: true,
+  const [subscriptions, projects] = userId
+    ? await Promise.all([
+      prisma.subscription.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.project.findMany({
+        where: {
+          userId,
+          subscription: {
+            is: {
+              paid: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-  ]);
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+    ])
+    : [[], []];
+
+  if (userId) {
+    // Ensure profile row exists for this Clerk user.
+    await prisma.profile.upsert({
+      where: { id: userId },
+      create: { id: userId },
+      update: {},
+    });
+  }
 
   const serializedSubs = subscriptions.map((s) => ({
     ...s,

@@ -60,8 +60,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-extrabold text-brand-navy mb-5">Our Story</h2>
               <p className="text-gray-500 leading-relaxed mb-4">
-                Apex Visual was born from a simple observation: most South African small businesses
-                either had no website, or had a site that was outdated, slow, and not generating any leads.
+                Apex Visual was built to solve the single most expensive mistake in South African business: paying R40,000+ for a website that gets abandoned, never updated, and generates nothing. We replaced the broken agency model with a retainer system — one monthly fee, one dedicated team, measurable results every 30 days.
               </p>
               <p className="text-gray-500 leading-relaxed mb-4">
                 We saw a gap. Agencies were charging R50,000+ for a website build that clients
@@ -79,8 +78,7 @@ export default function AboutPage() {
               </div>
               <div className="font-bold text-brand-navy text-xl mb-2">Our Mission</div>
               <p className="text-gray-500 text-sm leading-relaxed">
-                To make professional web presence accessible and affordable for every South African business —
-                with the ongoing support they need to actually grow.
+                To give every South African business the same digital firepower that large corporates take for granted — at a fixed monthly cost, with a team that stays invested in your growth.
               </p>
             </div>
           </div>
@@ -102,6 +100,27 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Team section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-extrabold text-brand-navy text-center mb-12">The team behind your website</h2>
+          <div className="flex flex-col items-center gap-6 mb-10">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-sm w-full text-center">
+              <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-brand-green/20 mx-auto mb-4 flex items-center justify-center text-gray-400 text-xs">
+                [Founder photo]
+              </div>
+              <div className="font-bold text-brand-navy text-lg">[Founder name]</div>
+              <div className="text-brand-green text-sm font-medium mb-3">[Title]</div>
+              <p className="text-gray-500 text-sm leading-relaxed mb-4">[2-line bio describing background and expertise]</p>
+              <a href="[LinkedIn URL]" className="text-xs text-brand-green underline">[LinkedIn URL]</a>
+            </div>
+          </div>
+          <p className="text-center text-gray-500 max-w-xl mx-auto">
+            We&apos;re a Johannesburg-based team of designers, developers, and strategists. Real people. Direct communication. No outsourced handoffs.
+          </p>
         </div>
       </section>
 

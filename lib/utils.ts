@@ -34,8 +34,8 @@ export const PACKAGES = {
     id: "starter",
     name: "Starter",
     price: 800,
-    badge: "NEW BUSINESSES",
-    tagline: "Best For: New Businesses",
+    badge: "GROWING BUSINESSES",
+    tagline: "Best For: Growing Businesses",
     turnaround: "5–7 business days",
     popular: false,
     features: [

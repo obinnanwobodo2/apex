@@ -5,6 +5,14 @@ import Script from "next/script";
 
 const PIXEL_IDS = ["1660410975120063", "1135560875325231"] as const;
 
+function safeDecode(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function readCookieMap() {
   return document.cookie
     .split(";")
@@ -15,7 +23,7 @@ function readCookieMap() {
       if (idx === -1) return acc;
       const key = entry.slice(0, idx).trim();
       const value = entry.slice(idx + 1).trim();
-      acc[key] = decodeURIComponent(value);
+      acc[key] = safeDecode(value);
       return acc;
     }, {});
 }
@@ -49,7 +57,13 @@ export default function FacebookPixels() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    const syncConsent = () => setEnabled(hasMarketingConsent());
+    const syncConsent = () => {
+      try {
+        setEnabled(hasMarketingConsent());
+      } catch {
+        setEnabled(false);
+      }
+    };
     syncConsent();
     window.addEventListener("storage", syncConsent);
     window.addEventListener("apex-consent-updated", syncConsent as EventListener);

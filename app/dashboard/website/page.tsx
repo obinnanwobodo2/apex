@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 import { Globe, ArrowUpRight, RefreshCw, BarChart2, FolderKanban, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,12 +18,15 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default async function WebsitePage() {
   const { userId } = await auth();
-  if (!userId) redirect("/login");
+  const guestPreview = !userId && isDashboardGuestPreviewEnabled();
+  if (!userId && !guestPreview) redirect("/login");
 
-  const projects = await prisma.project.findMany({
-    where: { userId, type: "website" },
-    orderBy: { createdAt: "desc" },
-  });
+  const projects = userId
+    ? await prisma.project.findMany({
+      where: { userId, type: "website" },
+      orderBy: { createdAt: "desc" },
+    })
+    : [];
 
   const activeProject = projects.find((p) => p.status === "completed" && p.websiteUrl) ?? projects[0] ?? null;
 

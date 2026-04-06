@@ -8,10 +8,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 cp .env.local.example .env.local
 ```
 
-2. Set database env vars.
-
-- `DATABASE_URL`: runtime connection string (recommended: Supabase pooler/pgBouncer URL)
-- `DIRECT_URL`: direct Postgres URL for Prisma migrations (`db.<project-ref>.supabase.co:5432`)
+2. Set `DATABASE_URL` to a PostgreSQL database.
 
 3. Install dependencies and apply schema:
 
@@ -57,7 +54,6 @@ This app includes baseline production protections:
 ### Required environment variables
 
 - `DATABASE_URL` (PostgreSQL)
-- `DIRECT_URL` (direct Postgres connection for Prisma migrations)
 - `NEXT_PUBLIC_APP_URL`
 - `PAYSTACK_SECRET_KEY`
 - `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
@@ -103,10 +99,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 1. Add all environment variables from `.env.local.example` in Vercel Project Settings.
 
-2. Ensure runtime DB is set to production PostgreSQL (Supabase/Neon/RDS).
-
-- `DATABASE_URL` should be your runtime pooled URL.
-- `DIRECT_URL` should be your direct DB URL for schema migrations.
+2. Ensure `DATABASE_URL` points to production PostgreSQL (Supabase/Neon/RDS).
 
 3. Use Clerk production keys (`pk_live`, `sk_live`) and add your live domain in Clerk dashboard.
    - Password reset link/code expiry is controlled by Clerk settings and defaults.
@@ -115,7 +108,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 4. Set `NEXT_PUBLIC_APP_URL` to your exact HTTPS domain (for example `https://yourdomain.com`).
 
-5. Run migrations on production database (uses `DIRECT_URL` when set):
+5. Run migrations on production database:
 
 ```bash
 npm run db:deploy

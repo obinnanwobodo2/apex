@@ -4,7 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { Check, Clock, Zap, Star, Crown, ArrowRight } from "lucide-react";
+import { Check, Clock, Zap, Star, Crown, ArrowRight, Building2 } from "lucide-react";
+import Link from "next/link";
 import { PACKAGES, formatCurrency } from "@/lib/utils";
 
 const packageIcons = {
@@ -47,8 +48,11 @@ export default function PricingSection() {
           <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mt-3 mb-4">
             Retainer plans
           </h2>
-          <p className="text-gray-600 text-lg max-w-xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-xl mx-auto mb-4">
             All plans include a built website + ongoing monthly care. Cancel anytime.
+          </p>
+          <p className="text-gray-500 text-base max-w-2xl mx-auto">
+            Every plan includes a fully built website plus ongoing monthly care — design updates, hosting, SEO, and support. Think of it as your in-house web team, at a fraction of the cost.
           </p>
         </motion.div>
 
@@ -97,6 +101,9 @@ export default function PricingSection() {
                       <span className="text-gray-500 text-sm mb-1.5">/month</span>
                     </div>
                     <p className="text-gray-500 text-sm mt-1">{pkg.tagline}</p>
+                    {pkg.id === "pro" && (
+                      <p className="text-gray-400 text-xs mt-2 leading-relaxed">The equivalent of one day of a full-time developer&apos;s time — but you get an entire agency team, every day of the month.</p>
+                    )}
                   </div>
 
                   <div className="border-t border-gray-200 mb-6" />
@@ -134,8 +141,60 @@ export default function PricingSection() {
           })}
         </div>
 
+        {/* Enterprise card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="mt-5 rounded-2xl border-2 border-dashed border-gray-300 bg-white p-7 flex flex-col md:flex-row md:items-center gap-6"
+        >
+          <div className="flex items-center gap-3 md:w-64 flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 border border-gray-200">
+              <Building2 className="h-5 w-5 text-gray-700" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Enterprise</h3>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">FOR ESTABLISHED BUSINESSES</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="text-2xl font-extrabold text-gray-900 mb-3">Custom pricing</div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                "Dedicated account manager",
+                "Custom integrations & API development",
+                "Multi-site management",
+                "SLA-backed support response times",
+                "Quarterly strategy sessions",
+                "White-label options available",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                  <Check className="h-4 w-4 text-brand-green mt-0.5 flex-shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex-shrink-0">
+            <Link href="/contact"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 whitespace-nowrap"
+              style={{ background: "#0f172a" }}>
+              Book a discovery call <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.div>
+
         <p className="text-center text-xs text-gray-500 mt-8">
           Prices exclude VAT. Billed monthly. Cancel anytime with 30 days notice.
+        </p>
+        <p className="text-center text-sm text-gray-500 mt-3">
+          All plans include your website build at no extra cost. No setup fees. No lock-in contracts. Cancel with 30 days notice.
+        </p>
+        <p className="text-center text-sm text-gray-500 mt-2">
+          Not sure yet?{" "}
+          <Link href="/contact" className="text-brand-green underline">Book a free 20-minute website review</Link>
+          {" "}— we&apos;ll show you exactly what&apos;s holding your current site back, at no cost and no obligation.
         </p>
       </div>
     </section>

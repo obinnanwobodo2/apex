@@ -64,6 +64,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const isGuestPreview = !user;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -76,12 +77,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const warningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const displayName = user?.fullName || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
-  const email = user?.emailAddresses[0]?.emailAddress || "";
+  const displayName = user?.fullName || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Guest";
+  const email = user?.emailAddresses[0]?.emailAddress || "Guest preview mode";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   const avatarUrl = user?.imageUrl || "";
 
-  const handleSignOut = useCallback(() => { signOut({ redirectUrl: "/" }); }, [signOut]);
+  const handleSignOut = useCallback(() => {
+    if (isGuestPreview) {
+      router.push("/login");
+      return;
+    }
+    signOut({ redirectUrl: "/" });
+  }, [isGuestPreview, router, signOut]);
 
   const resetTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
@@ -97,6 +104,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   }, [handleSignOut]);
 
   useEffect(() => {
+    if (isGuestPreview) return;
     const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
     events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
     resetTimer();
@@ -106,7 +114,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       if (warningTimer.current) clearTimeout(warningTimer.current);
       if (countdownInterval.current) clearInterval(countdownInterval.current);
     };
-  }, [resetTimer]);
+  }, [isGuestPreview, resetTimer]);
 
   useEffect(() => {
     if (!timeoutWarningOpen) return;
@@ -247,10 +255,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <p className="text-[10px] text-gray-400 truncate">{email}</p>
           </div>
         </div>
-        <button onClick={handleSignOut}
-          className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-brand-navy hover:bg-gray-100 transition-colors">
-          <LogOut className="h-3.5 w-3.5" />Sign out
-        </button>
+        {isGuestPreview ? (
+          <button
+            onClick={() => router.push("/login")}
+            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-brand-navy hover:bg-gray-100 transition-colors"
+          >
+            <User className="h-3.5 w-3.5" />Sign in to manage account
+          </button>
+        ) : (
+          <button onClick={handleSignOut}
+            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-brand-navy hover:bg-gray-100 transition-colors">
+            <LogOut className="h-3.5 w-3.5" />Sign out
+          </button>
+        )}
       </div>
     </div>
   );
@@ -337,10 +354,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                         className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                         <User className="h-3.5 w-3.5" />Settings
                       </Link>
-                      <button onClick={handleSignOut}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-brand-navy hover:bg-gray-100 transition-colors">
-                        <LogOut className="h-3.5 w-3.5" />Sign out
-                      </button>
+                      {isGuestPreview ? (
+                        <button
+                          onClick={() => router.push("/login")}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-brand-navy hover:bg-gray-100 transition-colors"
+                        >
+                          <User className="h-3.5 w-3.5" />Sign in
+                        </button>
+                      ) : (
+                        <button onClick={handleSignOut}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-brand-navy hover:bg-gray-100 transition-colors">
+                          <LogOut className="h-3.5 w-3.5" />Sign out
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

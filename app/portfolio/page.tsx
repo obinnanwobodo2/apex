@@ -131,6 +131,42 @@ export default function PortfolioPage() {
         </div>
       </section>
 
+      {/* Featured case study */}
+      {/* TODO: Replace placeholder content with a real client case study */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-green/10 text-brand-green text-sm font-medium mb-6">
+            <Star className="h-4 w-4 fill-brand-green" />
+            Featured case study
+          </div>
+          <h2 className="text-3xl font-extrabold text-brand-navy mb-10">In depth: [Client name]</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              { label: "[X]% increase in [metric]" },
+              { label: "[X] new [leads/bookings/sales] per month" },
+              { label: "Built in [X] days" },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-brand-navy rounded-2xl p-6 text-center">
+                <div className="text-2xl font-extrabold text-brand-green mb-1">[X]</div>
+                <div className="text-sm text-gray-300">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { heading: "The challenge", body: "[Describe the client's problem before working with us]" },
+              { heading: "What we built", body: "[Describe the solution: tech stack, design approach, timeline]" },
+              { heading: "The result", body: "[Specific measurable outcome: traffic, leads, revenue, time saved]" },
+            ].map((item) => (
+              <div key={item.heading} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-bold text-brand-navy mb-3">{item.heading}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Industry filter - display only, no client-side filtering for SSR */}
       <section className="py-6 px-4 border-b bg-white sticky top-16 z-10">
         <div className="max-w-6xl mx-auto flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -181,11 +217,11 @@ export default function PortfolioPage() {
       {/* CTA */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-brand-navy mb-4">Want results like these?</h2>
-          <p className="text-gray-500 mb-8">Start with any plan and see measurable growth in your first month.</p>
+          <h2 className="text-3xl font-extrabold text-brand-navy mb-4">Want results like these for your business?</h2>
+          <p className="text-gray-500 mb-8">Tell us about your project and we&apos;ll send a tailored quote within 2 hours.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="xl" asChild><Link href="/register">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
-            <Button size="xl" variant="outline" asChild><Link href="/contact">Talk to Us First</Link></Button>
+            <Button size="xl" asChild><Link href="/contact">Start your project <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button size="xl" variant="outline" asChild><Link href="/register">Get Started</Link></Button>
           </div>
         </div>
       </section>

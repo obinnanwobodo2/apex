@@ -3,15 +3,19 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { BarChart3, Users, TrendingUp, Eye, MousePointerClick, Globe, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 
 export default async function AnalyticsPage() {
   const { userId } = await auth();
-  if (!userId) redirect("/login");
+  const guestPreview = !userId && isDashboardGuestPreviewEnabled();
+  if (!userId && !guestPreview) redirect("/login");
 
-  const [subscriptions, projects] = await Promise.all([
-    prisma.subscription.findMany({ where: { userId, status: "active" } }),
-    prisma.project.findMany({ where: { userId } }),
-  ]);
+  const [subscriptions, projects] = userId
+    ? await Promise.all([
+      prisma.subscription.findMany({ where: { userId, status: "active" } }),
+      prisma.project.findMany({ where: { userId } }),
+    ])
+    : [[], []];
 
   const activeSubs = subscriptions.filter((s) => s.paid);
 

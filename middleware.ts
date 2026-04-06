@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { logSecurityEvent } from "@/lib/security-monitoring";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -73,6 +74,41 @@ function getClientIp(req: Request) {
   const realIp = req.headers.get("x-real-ip")?.trim();
   if (realIp) return realIp;
   return "unknown";
+}
+
+function normalizeHost(host: string | null) {
+  if (!host) return "";
+  return host.trim().toLowerCase().replace(/:\d+$/, "");
+}
+
+function getRequestHost(req: Request) {
+  return normalizeHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+}
+
+function getCanonicalRedirectUrl(req: Request) {
+  if (process.env.NODE_ENV !== "production") return null;
+
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!rawAppUrl) return null;
+
+  let canonical: URL;
+  try {
+    canonical = new URL(rawAppUrl);
+  } catch {
+    return null;
+  }
+
+  const requestHost = getRequestHost(req);
+  const canonicalHost = normalizeHost(canonical.host);
+  if (!requestHost || !canonicalHost || requestHost === canonicalHost) return null;
+
+  // Keep users on the canonical domain in production; preview hosts can break Clerk auth.
+  if (!requestHost.endsWith(".vercel.app")) return null;
+
+  const redirectUrl = new URL(req.url);
+  redirectUrl.protocol = canonical.protocol;
+  redirectUrl.host = canonicalHost;
+  return redirectUrl;
 }
 
 function normalizeOrigin(origin: string | null) {
@@ -281,6 +317,10 @@ export default clerkMiddleware(async (auth, req) => {
   const isApi = isApiRoute(req);
   const isWebhook = isWebhookRoute(req);
   const corsOrigin = getTrustedOrigin(req);
+  const isDashboardGuestRoute =
+    !isApi
+    && isDashboardGuestPreviewEnabled()
+    && req.nextUrl.pathname.startsWith("/dashboard");
   let rateLimitResult: RateLimitResult | null = null;
 
   function finalize(res: NextResponse) {
@@ -291,6 +331,13 @@ export default clerkMiddleware(async (auth, req) => {
       corsOrigin,
     });
     return res;
+  }
+
+  if (!isApi) {
+    const canonicalRedirectUrl = getCanonicalRedirectUrl(req);
+    if (canonicalRedirectUrl) {
+      return finalize(NextResponse.redirect(canonicalRedirectUrl, 307));
+    }
   }
 
   if (isApi && req.method === "OPTIONS") {
@@ -360,7 +407,7 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  if (!isPublicRoute(req)) {
+  if (!isPublicRoute(req) && !isDashboardGuestRoute) {
     const { userId } = auth();
     if (!userId) {
       if (isApi) {

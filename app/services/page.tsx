@@ -92,8 +92,7 @@ export default function ServicesPage() {
             <span className="text-brand-green">to win online</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            From a simple website to a full CRM + AI stack — we offer everything under one roof,
-            bundled in simple monthly plans.
+            One agency. Every digital service your business needs. No juggling freelancers, no chasing multiple vendors — we handle it all under one monthly retainer.
           </p>
         </div>
       </section>

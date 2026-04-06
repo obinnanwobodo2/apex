@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Server, Activity, Mail, Download, ShieldCheck, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { isDashboardGuestPreviewEnabled } from "@/lib/dashboard-guest-preview";
 
 const PLAN_LABELS: Record<string, string> = {
   none: "No Hosting",
@@ -14,19 +15,22 @@ const PLAN_LABELS: Record<string, string> = {
 
 export default async function HostingPage() {
   const { userId } = await auth();
-  if (!userId) redirect("/login");
+  const guestPreview = !userId && isDashboardGuestPreviewEnabled();
+  if (!userId && !guestPreview) redirect("/login");
 
-  const activeSubscription = await prisma.subscription.findFirst({
-    where: { userId, paid: true, status: "active" },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      package: true,
-      hostingPlan: true,
-      createdAt: true,
-      nextBillingDate: true,
-    },
-  });
+  const activeSubscription = userId
+    ? await prisma.subscription.findFirst({
+      where: { userId, paid: true, status: "active" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        package: true,
+        hostingPlan: true,
+        createdAt: true,
+        nextBillingDate: true,
+      },
+    })
+    : null;
 
   const hostingPlan = activeSubscription?.hostingPlan ?? "none";
   const hasHosting = hostingPlan !== "none";
