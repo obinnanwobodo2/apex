@@ -33,6 +33,7 @@ export default async function SettingsPage({
 
   return (
     <SettingsClient
+      isGuest={!!guestPreview}
       onboardingRequired={searchParams?.onboarding === "1"}
       profile={{
         fullName: profile.fullName ?? "",

@@ -31,5 +31,5 @@ export default async function RequestsPage() {
     updatedAt: r.updatedAt.toISOString(),
   }));
 
-  return <RequestsClient initialRequests={serialized} />;
+  return <RequestsClient initialRequests={serialized} isGuest={!!guestPreview} />;
 }

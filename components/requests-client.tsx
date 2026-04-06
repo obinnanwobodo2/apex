@@ -40,7 +40,7 @@ interface ProjectRequest {
   createdAt: string;
 }
 
-export default function RequestsClient({ initialRequests }: { initialRequests: ProjectRequest[] }) {
+export default function RequestsClient({ initialRequests, isGuest = false }: { initialRequests: ProjectRequest[]; isGuest?: boolean }) {
   const router = useRouter();
   const [requests] = useState(initialRequests);
   const [showForm, setShowForm] = useState(false);
@@ -123,13 +123,24 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
           <h1 className="text-2xl font-extrabold text-brand-navy">Project Requests</h1>
           <p className="text-gray-500 text-sm mt-1">Payment comes first. Once paid, your request appears in the admin work queue.</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-brand-navy transition-all hover:opacity-90"
-          style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
-        >
-          <Plus className="h-4 w-4" />New Request
-        </button>
+        {isGuest ? (
+          <a
+            href="/login"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy/60 cursor-not-allowed opacity-60"
+            onClick={(e) => e.preventDefault()}
+            title="Sign in to create a request"
+          >
+            <Plus className="h-4 w-4" />New Request
+          </a>
+        ) : (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-brand-navy transition-all hover:opacity-90"
+            style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
+          >
+            <Plus className="h-4 w-4" />New Request
+          </button>
+        )}
       </div>
       {success && <p className="text-sm text-brand-green bg-brand-green/10 border border-brand-green/20 rounded-lg px-4 py-3">{success}</p>}
 
@@ -371,14 +382,36 @@ export default function RequestsClient({ initialRequests }: { initialRequests: P
         <div className="bg-white border border-gray-200 rounded-2xl py-16 text-center">
           <FolderPlus className="h-10 w-10 text-[#222] mx-auto mb-3" />
           <h3 className="font-semibold text-brand-navy mb-1">No requests yet</h3>
-          <p className="text-gray-500 text-sm mb-5">After payment succeeds, your submitted requests will appear here.</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-brand-navy"
-            style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
-          >
-            <Plus className="h-4 w-4" />Create a Request
-          </button>
+          {isGuest ? (
+            <>
+              <p className="text-gray-500 text-sm mb-2">Sign in to submit a project request.</p>
+              <p className="text-gray-400 text-xs mb-5">
+                Not sure which plan you need?{" "}
+                <a href="/#packages" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:underline">View our plans</a>.
+              </p>
+              <a
+                href="/login"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:opacity-90 transition-opacity"
+              >
+                Sign In to Get Started
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 text-sm mb-2">After payment succeeds, your submitted requests will appear here.</p>
+              <p className="text-gray-400 text-xs mb-5">
+                Not sure which plan you need?{" "}
+                <a href="/#packages" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:underline">View our plans</a>.
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-brand-navy"
+                style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
+              >
+                <Plus className="h-4 w-4" />Create a Request
+              </button>
+            </>
+          )}
         </div>
       )}
 

@@ -36,9 +36,7 @@ export default async function AnalyticsPage() {
           <div className="text-sm text-gray-500 mt-0.5">
             Link your Google Analytics account to see live traffic, bounce rate, conversions and more directly here.
           </div>
-          <button className="mt-3 text-sm font-semibold text-brand-green hover:underline flex items-center gap-1.5">
-            <Globe className="h-3.5 w-3.5" />Connect Google Analytics
-          </button>
+          <p className="mt-3 text-xs text-gray-400 italic">Coming soon — you&apos;ll be able to connect your GA4 property here to see live traffic data.</p>
         </div>
       </div>
 
@@ -105,46 +103,33 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="opacity-50 border-dashed">
           <CardHeader>
             <CardTitle className="text-brand-navy text-base flex items-center gap-2">
-              <MousePointerClick className="h-4 w-4 text-brand-green" />Conversions & Leads
+              <MousePointerClick className="h-4 w-4 text-gray-400" />Conversions & Leads
+              <span className="ml-auto text-[10px] font-normal text-gray-400 border border-dashed border-gray-300 px-2 py-0.5 rounded-full">Coming soon</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-40 bg-gray-50 rounded-xl flex items-center justify-center">
               <div className="text-center">
                 <TrendingUp className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">Form submissions and lead tracking coming soon</p>
+                <p className="text-sm text-gray-400">Form submissions and lead tracking — coming soon</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Top pages placeholder */}
-      <Card>
+      {/* Top pages — empty state until GA connected */}
+      <Card className="opacity-60 border-dashed">
         <CardHeader>
           <CardTitle className="text-brand-navy text-base">Top Pages</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {["/", "/services", "/contact", "/about", "/portfolio"].map((page, i) => (
-              <div key={page} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-4">{i + 1}</span>
-                  <span className="text-sm font-medium text-brand-navy">{page}</span>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
-                  <span>— visits</span>
-                  <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-brand-green rounded-full h-1.5" style={{ width: `${(5 - i) * 20}%` }} />
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="h-28 flex items-center justify-center">
+            <p className="text-sm text-gray-400 text-center">Connect Google Analytics to see your top pages.</p>
           </div>
-          <p className="text-xs text-gray-400 text-center mt-4">Live data available after connecting Google Analytics</p>
         </CardContent>
       </Card>
     </div>

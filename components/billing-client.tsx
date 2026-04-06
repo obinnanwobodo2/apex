@@ -255,7 +255,7 @@ export default function BillingClient({ initialSubscriptions }: { initialSubscri
             <FileText className="h-10 w-10 text-gray-200 mx-auto mb-3" />
             <p className="text-gray-500 font-medium mb-1">No billing history</p>
             <p className="text-gray-400 text-sm mb-4">Subscribe to a plan to see your invoices here.</p>
-            <Button asChild><Link href="/#packages">View Plans</Link></Button>
+            <Button asChild><a href="/#packages" target="_blank" rel="noopener noreferrer">View Plans</a></Button>
           </CardContent>
         </Card>
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Building2, Bell, Shield, Save, CheckCircle2 } from "lucide-react";
+import { User, Building2, Bell, Shield, Save, CheckCircle2, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,9 +43,11 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 export default function SettingsClient({
   profile,
   onboardingRequired = false,
+  isGuest = false,
 }: {
   profile: ProfileData;
   onboardingRequired?: boolean;
+  isGuest?: boolean;
 }) {
   const [form, setForm] = useState<ProfileData>(profile);
   const [saving, setSaving] = useState(false);
@@ -75,6 +77,30 @@ export default function SettingsClient({
     } finally {
       setSaving(false);
     }
+  }
+
+  if (isGuest) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <div>
+          <h1 className="text-2xl font-extrabold text-brand-navy">Settings</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage your account and company details.</p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-10 text-center">
+          <div className="w-12 h-12 rounded-full bg-brand-navy/5 flex items-center justify-center mx-auto mb-4">
+            <Lock className="h-6 w-6 text-brand-navy/40" />
+          </div>
+          <h3 className="font-bold text-brand-navy mb-2">Sign in to manage your settings</h3>
+          <p className="text-sm text-gray-400 mb-5">Your account details, notifications, and security preferences are only available once you&apos;re signed in.</p>
+          <a
+            href="/login"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:opacity-90 transition-opacity"
+          >
+            Sign In
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -227,7 +253,8 @@ export default function SettingsClient({
             To change your password, email, or connected accounts, visit your{" "}
             <a href="https://accounts.clerk.com" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:underline">
               account security settings
-            </a>.
+            </a>.{" "}
+            <span className="text-gray-400 italic">You&apos;ll be taken to our secure account portal.</span>
           </p>
         </CardContent>
       </Card>

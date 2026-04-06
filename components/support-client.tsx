@@ -52,9 +52,15 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ subject?: string; message?: string }>({});
 
   async function submitTicket(e: React.FormEvent) {
     e.preventDefault();
+    const errs: { subject?: string; message?: string } = {};
+    if (!form.subject.trim()) errs.subject = "Subject is required.";
+    if (!form.message.trim()) errs.message = "Message is required.";
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) return;
     setSubmitting(true);
     setError("");
     try {
@@ -67,6 +73,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
       const ticket = await res.json();
       setTickets((prev) => [ticket, ...prev]);
       setSent(true);
+      setFieldErrors({});
     } catch {
       setError("Failed to submit ticket. Please try again.");
     } finally {
@@ -86,7 +93,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
         {[
           { icon: <MessageCircle className="h-5 w-5" />, label: "WhatsApp", sub: "+27 75 459 8388", href: "https://wa.me/27754598388", color: "text-brand-navy bg-brand-green/10" },
           { icon: <Mail className="h-5 w-5" />, label: "Email Us", sub: "info@apexvisual.co.za", href: "mailto:info@apexvisual.co.za", color: "text-brand-navy bg-brand-navy/5" },
-          { icon: <Calendar className="h-5 w-5" />, label: "Book a Call", sub: "30 min · Free", href: "https://calendly.com", color: "text-brand-navy bg-gray-100" },
+          { icon: <Calendar className="h-5 w-5" />, label: "Book a Call", sub: "30 min · Free", href: "https://calendly.com/apexvisual", color: "text-brand-navy bg-gray-100" },
           { icon: <Phone className="h-5 w-5" />, label: "Call Us", sub: "+27 75 459 8388", href: "tel:+27754598388", color: "text-brand-green bg-brand-green/10" },
         ].map((c) => (
           <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer"
@@ -114,7 +121,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                   <Send className="h-6 w-6 text-brand-green" />
                 </div>
                 <h3 className="font-bold text-brand-navy mb-1">Ticket submitted!</h3>
-                <p className="text-sm text-gray-400">We&apos;ll respond within 4 hours during business hours.</p>
+                <p className="text-sm text-gray-400">Your ticket has been submitted — we&apos;ll respond within 24 hours on business days.</p>
                 <button
                   onClick={() => { setSent(false); setForm({ subject: "", message: "", priority: "normal" }); }}
                   className="mt-4 text-sm text-brand-green hover:underline"
@@ -128,11 +135,12 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                 <div className="space-y-1.5">
                   <Label>Subject *</Label>
                   <Input
-                    required
                     value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, subject: e.target.value }); setFieldErrors((p) => ({ ...p, subject: undefined })); }}
                     placeholder="e.g. Update homepage banner image"
+                    className={fieldErrors.subject ? "border-red-400 focus-visible:ring-red-400" : ""}
                   />
+                  {fieldErrors.subject && <p className="text-xs text-red-500">{fieldErrors.subject}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label>Priority</Label>
@@ -148,11 +156,13 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                 <div className="space-y-1.5">
                   <Label>Message *</Label>
                   <Textarea
-                    required rows={4} className="resize-none"
+                    rows={4}
+                    className={`resize-none ${fieldErrors.message ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                     value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, message: e.target.value }); setFieldErrors((p) => ({ ...p, message: undefined })); }}
                     placeholder="Describe your request in detail..."
                   />
+                  {fieldErrors.message && <p className="text-xs text-red-500">{fieldErrors.message}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={submitting}>
                   <Send className="h-4 w-4 mr-2" />{submitting ? "Submitting…" : "Submit Ticket"}

@@ -62,13 +62,12 @@ export default function FilesPage() {
     setError("");
     try {
       const res = await fetch("/api/files", { cache: "no-store" });
+      if (res.status === 401) { setFiles([]); return; }
       const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to load files");
-      }
+      if (!res.ok) throw new Error(data?.error || "Failed to load files");
       setFiles(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load files");
+    } catch {
+      setFiles([]);
     } finally {
       setLoading(false);
     }
