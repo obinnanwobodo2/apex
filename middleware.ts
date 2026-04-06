@@ -208,6 +208,7 @@ function buildContentSecurityPolicy() {
     "'unsafe-inline'",
     "https://js.clerk.com",
     "https://clerk.apexvisual.co.za",
+    "https://accounts.apexvisual.co.za",
     "https://checkout.paystack.com",
     "https://app.termly.io",
   ];
@@ -222,8 +223,8 @@ function buildContentSecurityPolicy() {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za",
-    "frame-src 'self' https://checkout.paystack.com https://app.termly.io https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za",
+    "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za https://accounts.apexvisual.co.za",
+    "frame-src 'self' https://checkout.paystack.com https://app.termly.io https://*.clerk.com https://*.clerk.accounts.dev https://clerk.apexvisual.co.za https://accounts.apexvisual.co.za",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
