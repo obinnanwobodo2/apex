@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Globe, TrendingUp, Search, ShoppingCart, Bot, Zap, Server, Users, ArrowRight } from "lucide-react";
+import { Globe, TrendingUp, Search, ShoppingCart, Bot, Zap, Users, ArrowRight } from "lucide-react";
 
 const SERVICES = [
   { icon: Globe, title: "Website Design & Build", desc: "Custom, fast, mobile-first websites built to convert visitors into customers.", color: "#1b2340", bg: "bg-brand-green/10" },
@@ -11,8 +11,7 @@ const SERVICES = [
   { icon: ShoppingCart, title: "E-Commerce Setup", desc: "Start selling online with a full store, Paystack integration, and inventory management.", color: "#1b2340", bg: "bg-brand-navy/5" },
   { icon: Bot, title: "AI-Powered CRM", desc: "Manage contacts, pipeline, and tasks with built-in AI assistant for your sales team.", color: "#1b2340", bg: "bg-brand-green/10" },
   { icon: Zap, title: "Integrations & Automation", desc: "Connect your tools — WhatsApp, email, payments, and custom webhook automations.", color: "#1b2340", bg: "bg-brand-green/10" },
-  { icon: Server, title: "Hosting & Domains", desc: "Fast SA-based hosting with SSL, domain management, and 99.9% uptime guarantee.", color: "#1b2340", bg: "bg-brand-navy/5" },
-  { icon: Users, title: "Client Dashboard", desc: "Your own branded portal to track projects, invoices, and communicate with our team.", color: "#1b2340", bg: "bg-brand-green/10" },
+  { icon: Users, title: "Client Dashboard", desc: "Your own branded portal to track projects, invoices, and communicate with our team.", color: "#1b2340", bg: "bg-brand-navy/5" },
 ];
 
 export default function LandingServices() {

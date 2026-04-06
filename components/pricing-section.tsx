@@ -4,9 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { Check, Clock, Zap, Star, Crown, ArrowRight, Building2 } from "lucide-react";
+import { Check, Zap, Star, Crown, ArrowRight, Building2 } from "lucide-react";
 import Link from "next/link";
-import { PACKAGES, formatCurrency } from "@/lib/utils";
+import { PACKAGES } from "@/lib/utils";
 
 const packageIcons = {
   starter: Zap,
@@ -97,8 +97,7 @@ export default function PricingSection() {
 
                   <div className="mb-6">
                     <div className="flex items-end gap-1">
-                      <span className="text-4xl font-extrabold text-gray-900">{formatCurrency(pkg.price)}</span>
-                      <span className="text-gray-500 text-sm mb-1.5">/month</span>
+                      <span className="text-base font-semibold text-gray-500 italic">Pricing — contact us</span>
                     </div>
                     <p className="text-gray-500 text-sm mt-1">{pkg.tagline}</p>
                     {pkg.id === "pro" && (
@@ -116,11 +115,6 @@ export default function PricingSection() {
                       </li>
                     ))}
                   </ul>
-
-                  <div className="mt-5 flex items-center gap-2 text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2">
-                    <Clock className="h-3.5 w-3.5" />
-                    Turnaround: {pkg.turnaround}
-                  </div>
 
                   <button
                     className="mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
