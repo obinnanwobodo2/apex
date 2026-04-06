@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Globe, CreditCard, Settings, LogOut,
   Bell, Menu, ChevronRight, User, Users, BarChart3,
-  MessageCircle, FolderKanban, X, Search, FolderPlus, FileText, Sparkles, Server,
+  MessageCircle, FolderKanban, X, Search, FileText, Sparkles, Server,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -20,13 +20,11 @@ const LAST_LOGIN_STORAGE_KEY = "apex_last_login_at";
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Overview" },
-  { href: "/dashboard/projects", icon: FolderKanban, label: "Projects" },
-  { href: "/dashboard/website", icon: Globe, label: "Website" },
+  { href: "/dashboard/projects", icon: FolderKanban, label: "My Project" },
+  { href: "/dashboard/messages", icon: MessageCircle, label: "Messages" },
   { href: "/dashboard/files", icon: FileText, label: "Files" },
-  { href: "/dashboard/requests", icon: FolderPlus, label: "Requests" },
-  { href: "/dashboard/domains", icon: Globe, label: "Domains" },
   { href: "/dashboard/hosting", icon: Server, label: "Hosting" },
-  { href: "/dashboard/billing", icon: CreditCard, label: "Billing" },
+  { href: "/dashboard/billing", icon: CreditCard, label: "Billing & Cart" },
   { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/dashboard/support", icon: MessageCircle, label: "Support" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
@@ -43,19 +41,19 @@ const TOUR_STEPS = [
     href: "/dashboard",
   },
   {
-    title: "Submit Requests",
-    description: "Use Requests to ask for new websites, features, updates, and service changes in one place.",
-    href: "/dashboard/requests",
+    title: "My Project",
+    description: "Track your project pipeline, review your website preview, and approve your build for launch.",
+    href: "/dashboard/projects",
   },
   {
-    title: "Domains & Billing",
-    description: "Search domains, request registration, view invoices, and track all payments and subscriptions.",
-    href: "/dashboard/domains",
+    title: "Messages",
+    description: "Chat directly with the Apex Visual team about your project. All updates happen here.",
+    href: "/dashboard/messages",
   },
   {
-    title: "Support & Settings",
-    description: "Open support tickets and keep your profile, company details, and notifications up to date.",
-    href: "/dashboard/support",
+    title: "Billing & Cart",
+    description: "View invoices, manage your subscription, and check out any items in your cart.",
+    href: "/dashboard/billing",
   },
 ];
 

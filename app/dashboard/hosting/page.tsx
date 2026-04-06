@@ -59,7 +59,7 @@ export default async function HostingPage() {
           </div>
           {!hasHosting && (
             <Button asChild>
-              <Link href="/dashboard/requests">Request Hosting Add-on</Link>
+              <Link href="/dashboard/support">Request Hosting Add-on</Link>
             </Button>
           )}
         </CardContent>
@@ -121,9 +121,7 @@ export default async function HostingPage() {
           {hasHosting ? (
             <>
               <p className="text-sm text-gray-500">Request the latest backup package from support for security verification.</p>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/support">Request Backup Download</Link>
-              </Button>
+              <Button variant="outline" asChild><Link href="/dashboard/support">Request Backup Download</Link></Button>
             </>
           ) : (
             <p className="text-sm text-gray-400">No hosting backup available yet. Add hosting to enable backup access.</p>
@@ -135,8 +133,8 @@ export default async function HostingPage() {
         <Card>
           <CardContent className="p-4 text-xs text-gray-500 flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-brand-green" />
-            Subscription started {activeSubscription.createdAt.toLocaleDateString("en-ZA")}
-            {activeSubscription.nextBillingDate ? ` · Renews ${activeSubscription.nextBillingDate.toLocaleDateString("en-ZA")}` : ""}
+            Subscription started {new Date(activeSubscription.createdAt).toLocaleDateString("en-ZA")}
+            {activeSubscription.nextBillingDate ? ` · Renews ${new Date(activeSubscription.nextBillingDate).toLocaleDateString("en-ZA")}` : ""}
           </CardContent>
         </Card>
       )}

@@ -419,7 +419,7 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  if (isAdminRoute(req)) {
+  if (isAdminRoute(req) && process.env.BYPASS_ADMIN_AUTH !== "true") {
     const adminUser = process.env.ADMIN_BASIC_USERNAME?.trim();
     const adminPass = process.env.ADMIN_BASIC_PASSWORD?.trim();
 
