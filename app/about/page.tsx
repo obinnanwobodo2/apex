@@ -13,7 +13,7 @@ const VALUES = [
 
 const STATS = [
   { value: "12+", label: "Projects delivered" },
-  { value: "Since 2025", label: "In business" },
+  { value: "Founded in 2018", label: "In business" },
   { value: "95%", label: "Client satisfaction" },
   { value: "5 days", label: "Average delivery" },
 ];
@@ -28,13 +28,13 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-green/10 text-brand-green text-sm font-medium mb-5">
             <Users className="h-4 w-4" />
-            About Apex Visuals
+            About Apex Visual
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-brand-navy mb-5 leading-tight">
             We build websites that <span className="text-brand-green">actually grow your business</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Apex Visuals is a South African web design and digital services agency specialising
+            Apex Visual is a South African web design and digital services agency specialising
             in monthly retainer packages for growing businesses. We handle everything — design,
             development, hosting, SEO, and ongoing updates.
           </p>
@@ -60,7 +60,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-extrabold text-brand-navy mb-5">Our Story</h2>
               <p className="text-gray-500 leading-relaxed mb-4">
-                Apex Visuals was born from a simple observation: most South African small businesses
+                Apex Visual was born from a simple observation: most South African small businesses
                 either had no website, or had a site that was outdated, slow, and not generating any leads.
               </p>
               <p className="text-gray-500 leading-relaxed mb-4">
@@ -69,7 +69,7 @@ export default function AboutPage() {
                 covers everything, forever. No surprise invoices. No abandoned projects.
               </p>
               <p className="text-gray-500 leading-relaxed">
-                Established in 2025, we are a growing studio serving businesses across South Africa —
+                Founded in 2018, we are a growing studio serving businesses across South Africa —
                 from solo consultants to growing companies — all on simple, transparent monthly plans.
               </p>
             </div>

@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import DashboardShell from "@/components/dashboard-shell";
 
-export const metadata = { title: "Dashboard — Apex Visuals" };
+export const metadata = { title: "Dashboard — Apex Visual" };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();

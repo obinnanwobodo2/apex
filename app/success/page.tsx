@@ -65,7 +65,7 @@ function SuccessContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-green/10 flex flex-col items-center justify-center px-4">
       {/* Logo */}
       <Link href="/" className="mb-10">
-        <Image src="/logo.svg" alt="Apex Visuals" width={150} height={60} className="h-10 w-auto" />
+        <Image src="/logo.svg" alt="Apex Visual" width={150} height={60} className="h-10 w-auto" />
       </Link>
 
       <div className="max-w-lg w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-10 text-center animate-fade-in">

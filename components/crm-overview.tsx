@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Users, TrendingUp, CheckSquare, Activity, ArrowUpRight, Clock, PhoneCall, Mail, CalendarDays, FileText, MessageSquare, Pin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -47,7 +48,9 @@ export default function CrmOverview({ data }: { data: CrmData }) {
     {
       label: "Total Contacts",
       value: String(contacts.length),
-      sub: `${contacts.filter((c) => c.status === "customer").length} customers`,
+      sub: contacts.length > 0
+        ? `${contacts.filter((c) => c.status === "customer").length} customers`
+        : "No contacts yet. Add your first lead.",
       icon: <Users className="h-5 w-5" />,
       color: "text-brand-green",
       bg: "bg-brand-green/10",
@@ -56,7 +59,9 @@ export default function CrmOverview({ data }: { data: CrmData }) {
     {
       label: "Open Deals",
       value: String(openDeals.length),
-      sub: `${formatCurrency(pipelineValue)} pipeline`,
+      sub: openDeals.length > 0
+        ? `${formatCurrency(pipelineValue)} pipeline`
+        : "No open deals. Create your first opportunity.",
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-brand-navy/5",
@@ -65,7 +70,7 @@ export default function CrmOverview({ data }: { data: CrmData }) {
     {
       label: "Tasks Due",
       value: String(tasks.filter((t) => t.dueDate && new Date(t.dueDate) <= new Date()).length),
-      sub: `${tasks.length} total open`,
+      sub: tasks.length > 0 ? `${tasks.length} total open` : "No tasks yet. Add a follow-up task.",
       icon: <CheckSquare className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-gray-100",
@@ -74,7 +79,7 @@ export default function CrmOverview({ data }: { data: CrmData }) {
     {
       label: "Won This Month",
       value: formatCurrency(wonValue),
-      sub: `${wonDeals.length} deals closed`,
+      sub: wonDeals.length > 0 ? `${wonDeals.length} deals closed` : "No closed deals yet.",
       icon: <Activity className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-gray-100",
@@ -237,7 +242,13 @@ export default function CrmOverview({ data }: { data: CrmData }) {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Activity className="h-8 w-8 text-gray-200 mx-auto mb-2" />
+                <Image
+                  src="/assets/images/empty-activity.svg"
+                  alt="No recent activity illustration"
+                  width={320}
+                  height={180}
+                  className="mx-auto mb-3 h-auto w-full max-w-[320px]"
+                />
                 <p className="text-sm text-gray-400">No activity yet</p>
               </div>
             )}

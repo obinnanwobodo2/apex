@@ -30,7 +30,7 @@ const SERVICES = [
     icon: <ShoppingCart className="h-7 w-7" />,
     title: "E-Commerce Setup",
     desc: "Start selling online. We build and manage your online store with secure payment integration.",
-    features: ["Product catalogue setup", "Paystack / PayFast integration", "Inventory management", "Order tracking"],
+    features: ["Product catalogue setup", "Paystack integration", "Inventory management", "Order tracking"],
     color: "text-brand-navy bg-gray-100",
   },
   {
@@ -64,9 +64,10 @@ const SERVICES = [
 ];
 
 const ADDONS = [
+  { name: "Website Maintenance Plan", price: "R600/mo", desc: "Monthly updates, security checks, and backups" },
   { name: "Hosting (Basic)", price: "R150/mo", desc: "5GB SSD, SSL, 99.9% uptime" },
   { name: "Hosting (Business)", price: "R350/mo", desc: "20GB SSD, priority support, CDN" },
-  { name: "CRM Starter", price: "R500/mo", desc: "Up to 500 contacts, AI assistant" },
+  { name: "CRM Starter", price: "R199/mo", desc: "Up to 500 contacts, AI assistant" },
   { name: "CRM Pro", price: "R1,200/mo", desc: "Unlimited contacts, full integrations" },
   { name: "Extra Domain", price: "R180/yr", desc: ".co.za or .com registration" },
   { name: "Priority Support", price: "R400/mo", desc: "4-hour response SLA, dedicated line" },
@@ -128,8 +129,9 @@ export default function ServicesPage() {
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold text-brand-navy">Add-ons & Extras</h2>
+            <h2 className="text-3xl font-extrabold text-brand-navy">One-off project pricing</h2>
             <p className="text-gray-500 mt-2">Add to any plan. Cancel or adjust anytime.</p>
+            <p className="text-xs text-gray-400 mt-2">Prices exclude VAT.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {ADDONS.map((a) => (

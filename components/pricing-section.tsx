@@ -45,7 +45,7 @@ export default function PricingSection() {
         >
           <span className="text-xs font-bold text-brand-green uppercase tracking-widest">Pricing</span>
           <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mt-3 mb-4">
-            Monthly Retainer Packages
+            Retainer plans
           </h2>
           <p className="text-gray-600 text-lg max-w-xl mx-auto">
             All plans include a built website + ongoing monthly care. Cancel anytime.

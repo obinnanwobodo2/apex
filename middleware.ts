@@ -16,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
   "/checkout(.*)",
   "/success(.*)",
   "/api/health(.*)",
+  "/api/newsletter/subscribe(.*)",
   "/api/paystack/webhook(.*)",
   "/api/monitoring/client-errors(.*)",
 ]);

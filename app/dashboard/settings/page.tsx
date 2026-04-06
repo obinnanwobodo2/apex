@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SettingsClient from "@/components/settings-client";
 
@@ -8,7 +9,7 @@ export default async function SettingsPage({
   searchParams?: { onboarding?: string };
 }) {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
 
   const profile = await prisma.profile.upsert({
     where: { id: userId },

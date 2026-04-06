@@ -29,7 +29,7 @@ export default function LandingHero() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-green/30 bg-brand-green/10 text-brand-green text-xs sm:text-sm font-medium mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
-          Newly Established in 2025
+          South African digital partner
         </motion.div>
 
         {/* Headline */}
@@ -109,7 +109,7 @@ export default function LandingHero() {
         >
           {[
             { value: "10+", label: "Clients Served" },
-            { value: "Since 2025", label: "Established" },
+            { value: "SA", label: "Nationwide Support" },
             { value: "95%", label: "Client Satisfaction" },
             { value: "5 days", label: "Avg Delivery" },
           ].map((stat) => (

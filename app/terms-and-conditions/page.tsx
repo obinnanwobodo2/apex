@@ -4,18 +4,18 @@ import Footer from "@/components/footer";
 import TermlyPolicyEmbed from "@/components/termly-policy-embed";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | Apex Visuals",
-  description: "Read the Terms and Conditions for Apex Visuals website and services.",
+  title: "Terms & Conditions | Apex Visual",
+  description: "Read the Terms and Conditions for Apex Visual website and services.",
 };
 
 const SECTIONS = [
   {
     title: "1. Acceptance of Terms",
-    body: "By accessing or using Apex Visuals services, website, or client dashboard, you agree to these Terms and Conditions. If you do not agree, please do not use our services.",
+    body: "By accessing or using Apex Visual services, website, or client dashboard, you agree to these Terms and Conditions. If you do not agree, please do not use our services.",
   },
   {
     title: "2. Services",
-    body: "Apex Visuals provides web design, development, hosting support, CRM services, and related digital services. Final scope, timelines, and deliverables are defined in your selected package, invoice, or written agreement.",
+    body: "Apex Visual provides web design, development, hosting support, CRM services, and related digital services. Final scope, timelines, and deliverables are defined in your selected package, invoice, or written agreement.",
   },
   {
     title: "3. Client Responsibilities",
@@ -27,11 +27,11 @@ const SECTIONS = [
   },
   {
     title: "5. Domains and Third-Party Services",
-    body: "Domain registration, hosting, and third-party tools may be subject to external provider policies and availability. Apex Visuals is not responsible for third-party downtime, pricing changes, or policy changes.",
+    body: "Domain registration, hosting, and third-party tools may be subject to external provider policies and availability. Apex Visual is not responsible for third-party downtime, pricing changes, or policy changes.",
   },
   {
     title: "6. Intellectual Property",
-    body: "Upon full payment, clients receive rights to approved final project outputs as agreed. Apex Visuals retains ownership of internal frameworks, reusable code components, templates, and proprietary methods unless explicitly transferred in writing.",
+    body: "Upon full payment, clients receive rights to approved final project outputs as agreed. Apex Visual retains ownership of internal frameworks, reusable code components, templates, and proprietary methods unless explicitly transferred in writing.",
   },
   {
     title: "7. Revisions and Change Requests",
@@ -39,7 +39,7 @@ const SECTIONS = [
   },
   {
     title: "8. Limitation of Liability",
-    body: "To the maximum extent permitted by law, Apex Visuals is not liable for indirect, incidental, special, or consequential losses. Total liability is limited to the amount paid by the client for the affected service.",
+    body: "To the maximum extent permitted by law, Apex Visual is not liable for indirect, incidental, special, or consequential losses. Total liability is limited to the amount paid by the client for the affected service.",
   },
   {
     title: "9. Termination",
@@ -51,7 +51,7 @@ const SECTIONS = [
   },
   {
     title: "11. Contact",
-    body: "For questions about these Terms and Conditions, contact us at info@apexvisual.co.za.",
+    body: "For questions about these Terms and Conditions, contact legal@apexvisual.co.za.",
   },
 ];
 

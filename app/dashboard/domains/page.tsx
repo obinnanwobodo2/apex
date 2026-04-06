@@ -72,6 +72,7 @@ export default function DomainsPage() {
   const [checked, setChecked] = useState<DomainResult[]>([]);
   const [orders, setOrders] = useState<DomainOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const liveDomain = orders.find((order) => humanStatus(order) === "Live")?.domain ?? orders[0]?.domain ?? null;
 
   async function loadOrders() {
     setOrdersLoading(true);
@@ -308,6 +309,33 @@ export default function DomainsPage() {
               );
             })}
           </div>
+        )}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <h3 className="font-semibold text-brand-navy text-sm mb-4">DNS Settings</h3>
+        {liveDomain ? (
+          <div className="space-y-3">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+              <p className="text-sm font-semibold text-brand-navy">{liveDomain}</p>
+              <p className="text-xs text-gray-500 mt-1">Use the DNS records below if you manage nameservers externally.</p>
+            </div>
+            <div className="space-y-2">
+              {[
+                { type: "A", host: "@", value: "76.76.21.21", ttl: "3600" },
+                { type: "CNAME", host: "www", value: "cname.vercel-dns.com", ttl: "3600" },
+              ].map((record) => (
+                <div key={`${record.type}-${record.host}`} className="grid grid-cols-4 gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-600">
+                  <span className="font-semibold text-brand-navy">{record.type}</span>
+                  <span>{record.host}</span>
+                  <span className="truncate">{record.value}</span>
+                  <span className="text-right">{record.ttl}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">No registered domain yet. Complete registration to unlock DNS controls.</p>
         )}
       </div>
 

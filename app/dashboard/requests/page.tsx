@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import RequestsClient from "@/components/requests-client";
 
 export default async function RequestsPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
 
   const requests = await prisma.project.findMany({
     where: {

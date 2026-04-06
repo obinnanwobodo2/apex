@@ -5,28 +5,12 @@ import { Star, Quote } from "lucide-react";
 
 const TESTIMONIALS = [
   {
-    name: "Thabo Mokoena",
-    business: "Mokoena Legal Consultants",
-    location: "Johannesburg",
-    text: "Within two weeks of launching our new site, we had 3 new client inquiries. The retainer model means we never have to chase updates — it just happens.",
+    name: "[Name]",
+    business: "[Company]",
+    location: "South Africa",
+    text: "[Quote]",
     stars: 5,
-    avatar: "TM",
-  },
-  {
-    name: "Priya Naidoo",
-    business: "Naidoo Beauty Studio",
-    location: "Durban",
-    text: "I used to dread updating my website. Now I just send a WhatsApp and it's done. The Growth plan was exactly what I needed to start booking clients online.",
-    stars: 5,
-    avatar: "PN",
-  },
-  {
-    name: "Warren Jacobs",
-    business: "Jacobs & Sons Construction",
-    location: "Cape Town",
-    text: "We went from no online presence to ranking on page 1 for our area in 3 months. The Pro plan includes everything — hosting, SEO, updates. Worth every rand.",
-    stars: 5,
-    avatar: "WJ",
+    avatar: "NA",
   },
 ];
 

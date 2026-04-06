@@ -189,7 +189,7 @@ function CheckoutContent() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/">
-            <Image src="/logo.svg" alt="Apex Visuals" width={130} height={52} className="h-9 w-auto" />
+            <Image src="/logo.svg" alt="Apex Visual" width={130} height={52} className="h-9 w-auto" />
           </Link>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Lock className="h-3.5 w-3.5 text-brand-green" />
@@ -292,7 +292,7 @@ function CheckoutContent() {
               <CardContent>
                 <div className="flex items-start justify-between py-3 border-t border-gray-100">
                   <div>
-                    <p className="font-medium text-sm text-brand-navy">Apex Visuals {pkg.name} Package</p>
+                    <p className="font-medium text-sm text-brand-navy">Apex Visual {pkg.name} Package</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {isCrmPlan ? "Monthly CRM subscription" : "Monthly retainer"} — {pkg.turnaround}
                     </p>

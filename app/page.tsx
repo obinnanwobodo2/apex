@@ -1,7 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import LandingHero from "@/components/landing-hero";
-import LandingTrusted from "@/components/landing-trusted";
 import LandingPortfolio from "@/components/landing-portfolio";
 import LandingServices from "@/components/landing-services";
 import HowItWorks from "@/components/how-it-works";
@@ -16,7 +15,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <LandingHero />
-      <LandingTrusted />
       <LandingPortfolio />
       <LandingServices />
       <HowItWorks />

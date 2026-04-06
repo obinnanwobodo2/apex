@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Globe, TrendingUp, Calendar, CreditCard, ArrowUpRight,
-  Clock, CheckCircle2, AlertCircle, Plus, FolderKanban, BookOpenCheck,
+  Clock, CheckCircle2, AlertCircle, Plus, FolderKanban, BookOpenCheck, Server, Settings,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +86,7 @@ export default function DashboardOverview({
     {
       label: "Active Plan",
       value: pkg?.name ?? "None",
-      sub: activeSub ? `${formatCurrency(activeSub.amount)}/mo` : "No active plan",
+      sub: activeSub ? `${formatCurrency(activeSub.amount)}/mo` : "No active plan. Choose a package to begin.",
       icon: <Globe className="h-5 w-5" />,
       color: "text-brand-green",
       bg: "bg-brand-green/10",
@@ -96,7 +96,7 @@ export default function DashboardOverview({
       value: activeSub?.nextBillingDate
         ? new Date(activeSub.nextBillingDate).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })
         : "—",
-      sub: "Auto-renews monthly",
+      sub: activeSub ? "Auto-renews monthly" : "No billing date yet.",
       icon: <Calendar className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-brand-navy/5",
@@ -104,7 +104,7 @@ export default function DashboardOverview({
     {
       label: "Total Projects",
       value: String(projects.length),
-      sub: "All time",
+      sub: projects.length > 0 ? "All time" : "No projects yet. Submit your first request.",
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-gray-100",
@@ -112,7 +112,7 @@ export default function DashboardOverview({
     {
       label: "Monthly Value",
       value: activeSub ? formatCurrency(activeSub.amount) : "R0",
-      sub: "excl. VAT",
+      sub: activeSub ? "excl. VAT" : "No active billing yet.",
       icon: <CreditCard className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-gray-100",
@@ -261,8 +261,9 @@ export default function DashboardOverview({
                   action: () => setFlowOpen(true),
                 },
                 { label: "My projects", icon: <FolderKanban className="h-4 w-4" />, href: "/dashboard/projects" },
-                { label: "View my website", icon: <Globe className="h-4 w-4" />, href: "/dashboard/website" },
-                { label: "View invoices", icon: <CreditCard className="h-4 w-4" />, href: "/dashboard/billing" },
+                { label: "Domain", icon: <Globe className="h-4 w-4" />, href: "/dashboard/domains" },
+                { label: "Hosting", icon: <Server className="h-4 w-4" />, href: "/dashboard/hosting" },
+                { label: "Settings", icon: <Settings className="h-4 w-4" />, href: "/dashboard/settings" },
               ].map((action) =>
                 "action" in action && action.action ? (
                   <button

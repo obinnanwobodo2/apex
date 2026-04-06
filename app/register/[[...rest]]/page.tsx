@@ -16,7 +16,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-green/10 flex flex-col items-center justify-center px-4">
       <Link href="/" className="mb-8">
-        <Image src="/logo.svg" alt="Apex Visuals" width={150} height={60} className="h-10 w-auto" />
+        <Image src="/logo.svg" alt="Apex Visual" width={150} height={60} className="h-10 w-auto" />
       </Link>
       <SignUp
         routing="path"

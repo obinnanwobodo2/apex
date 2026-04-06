@@ -11,7 +11,7 @@ const faqs = [
   { q: "Is VAT included in the price?", a: "Prices shown are exclusive of VAT. VAT at 15% is added at checkout. We'll issue a VAT-compliant invoice for your records." },
   { q: "How long until my website is live?", a: "Starter: 5–7 days. Growth: 7–10 days. Pro: 10–14 days. This depends on how quickly you provide content and feedback." },
   { q: "What does 'unlimited updates' mean?", a: "Text changes, image swaps, new sections, contact info, new pages — anything short of a full rebuild. Most updates are done within 24–48 hours." },
-  { q: "Do you offer e-commerce?", a: "Yes. E-commerce is included in the Growth and Pro plans, and can be added to Starter as an add-on. We integrate with Paystack and other SA payment providers." },
+  { q: "Do you offer e-commerce?", a: "Yes. E-commerce is included in the Growth and Pro plans, and can be added to Starter as an add-on. We integrate with Paystack." },
 ];
 
 export default function FaqSection() {

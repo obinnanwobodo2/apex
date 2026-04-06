@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import DashboardOverview from "@/components/dashboard-overview";
 import { PACKAGES, type PackageId } from "@/lib/utils";
@@ -17,7 +18,7 @@ function getInitialPlanId(value: string | undefined): PackageId | null {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
   const initialPlanId = getInitialPlanId(searchParams?.plan);
 
   // Ensure profile row exists for this Clerk user

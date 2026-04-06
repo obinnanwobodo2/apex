@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import BillingClient from "@/components/billing-client";
 
 export default async function BillingPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
 
   const subscriptions = await prisma.subscription.findMany({
     where: { userId },

@@ -1,11 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { BarChart3, Users, TrendingUp, Eye, MousePointerClick, Globe, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AnalyticsPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
 
   const [subscriptions, projects] = await Promise.all([
     prisma.subscription.findMany({ where: { userId, status: "active" } }),
@@ -40,10 +41,34 @@ export default async function AnalyticsPage() {
       {/* Account stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Active Subscriptions", value: String(activeSubs.length), icon: <Zap className="h-5 w-5" />, color: "text-brand-green bg-brand-green/10" },
-          { label: "Total Projects", value: String(projects.length), icon: <Globe className="h-5 w-5" />, color: "text-brand-navy bg-brand-navy/5" },
-          { label: "Monthly Spend", value: `R${activeSubs.reduce((s, sub) => s + sub.amount, 0).toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "text-brand-navy bg-gray-100" },
-          { label: "Services Active", value: String(new Set(activeSubs.map((s) => s.package)).size), icon: <Users className="h-5 w-5" />, color: "text-brand-navy bg-gray-100" },
+          {
+            label: "Active Subscriptions",
+            value: String(activeSubs.length),
+            sub: activeSubs.length > 0 ? "Plans currently active" : "No active subscription yet.",
+            icon: <Zap className="h-5 w-5" />,
+            color: "text-brand-green bg-brand-green/10",
+          },
+          {
+            label: "Total Projects",
+            value: String(projects.length),
+            sub: projects.length > 0 ? "Tracked projects" : "No projects yet. Submit your first request.",
+            icon: <Globe className="h-5 w-5" />,
+            color: "text-brand-navy bg-brand-navy/5",
+          },
+          {
+            label: "Monthly Spend",
+            value: `R${activeSubs.reduce((s, sub) => s + sub.amount, 0).toLocaleString()}`,
+            sub: activeSubs.length > 0 ? "Current active plans" : "No monthly spend yet.",
+            icon: <TrendingUp className="h-5 w-5" />,
+            color: "text-brand-navy bg-gray-100",
+          },
+          {
+            label: "Services Active",
+            value: String(new Set(activeSubs.map((s) => s.package)).size),
+            sub: activeSubs.length > 0 ? "Unique services in use" : "No active services yet.",
+            icon: <Users className="h-5 w-5" />,
+            color: "text-brand-navy bg-gray-100",
+          },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-5">
@@ -52,6 +77,7 @@ export default async function AnalyticsPage() {
               </div>
               <div className="text-2xl font-extrabold text-brand-navy">{stat.value}</div>
               <div className="text-sm text-gray-500 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-400 mt-1">{stat.sub}</div>
             </CardContent>
           </Card>
         ))}

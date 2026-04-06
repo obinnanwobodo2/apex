@@ -34,7 +34,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     <div className="flex flex-col h-full">
       <div className="px-5 py-5 border-b border-gray-100">
         <Link href="/">
-          <Image src="/logo.svg" alt="Apex Visuals" width={140} height={56} className="h-9 w-auto" />
+          <Image src="/logo.svg" alt="Apex Visual" width={140} height={56} className="h-9 w-auto" />
         </Link>
         <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-green/10 border border-brand-green/30 text-brand-green text-xs font-semibold">
           <Shield className="h-3 w-3" />Admin Panel

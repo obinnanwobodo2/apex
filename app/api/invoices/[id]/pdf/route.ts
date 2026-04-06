@@ -80,7 +80,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     : `${packageName} Package`;
 
   const lines = [
-    "Apex Visuals - Tax Invoice (Paid)",
+    "Apex Visual - Tax Invoice (Paid)",
     "",
     `Invoice Number: ${subscription.invoiceNumber ?? subscription.id}`,
     `Invoice Date: ${subscription.createdAt.toLocaleDateString("en-ZA")}`,
@@ -97,7 +97,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       : "Next Billing Date: N/A",
     "",
     "Thank you for your payment.",
-    "Apex Visuals | info@apexvisual.co.za",
+    "Apex Visual | info@apexvisual.co.za",
   ];
 
   const pdf = buildInvoicePdf(lines);

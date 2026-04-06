@@ -3,14 +3,14 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Refund Policy | Apex Visuals",
-  description: "Read the Apex Visuals Refund Policy for services and subscriptions.",
+  title: "Refund Policy | Apex Visual",
+  description: "Read the Apex Visual Refund Policy for services and subscriptions.",
 };
 
 const SECTIONS = [
   {
     title: "1. Overview",
-    body: "This Refund Policy explains how refunds are handled for Apex Visuals services, subscriptions, and digital deliverables.",
+    body: "This Refund Policy explains how refunds are handled for Apex Visual services, subscriptions, and digital deliverables.",
   },
   {
     title: "2. Project Deposits and Setup Fees",
@@ -34,7 +34,7 @@ const SECTIONS = [
   },
   {
     title: "7. Non-Performance",
-    body: "If Apex Visuals cannot deliver a paid service due to reasons within our control, we will provide either a proportional service credit, re-delivery plan, or partial/full refund as appropriate.",
+    body: "If Apex Visual cannot deliver a paid service due to reasons within our control, we will provide either a proportional service credit, re-delivery plan, or partial/full refund as appropriate.",
   },
   {
     title: "8. Contact",

@@ -15,7 +15,7 @@ const PROJECTS = [
     tags: ["Website", "SEO", "Booking System"],
     result: "+3 new clients in week 1",
     plan: "Growth",
-    image: "/portfolio/professional.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Naidoo Beauty Studio",
@@ -24,7 +24,7 @@ const PROJECTS = [
     tags: ["Website", "Booking", "WhatsApp"],
     result: "Bookings up 60%",
     plan: "Starter",
-    image: "/portfolio/hospitality.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Van Zyl Construction",
@@ -33,7 +33,7 @@ const PROJECTS = [
     tags: ["Website", "Portfolio", "Local SEO"],
     result: "Page 1 on Google in 6 weeks",
     plan: "Growth",
-    image: "/portfolio/professional.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "ZD Accounting",
@@ -42,7 +42,7 @@ const PROJECTS = [
     tags: ["Website", "CRM", "Client Portal"],
     result: "30% more inquiries",
     plan: "Pro",
-    image: "/portfolio/professional.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Ferreira Automotive",
@@ -51,7 +51,7 @@ const PROJECTS = [
     tags: ["E-Commerce", "Paystack", "WhatsApp"],
     result: "R120K in online sales month 1",
     plan: "Pro",
-    image: "/portfolio/ecommerce.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Patel Fashion Boutique",
@@ -60,7 +60,7 @@ const PROJECTS = [
     tags: ["E-Commerce", "Fashion", "Instagram"],
     result: "80 products live in 10 days",
     plan: "Pro",
-    image: "/portfolio/ecommerce.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Sunrise Guesthouse",
@@ -69,7 +69,7 @@ const PROJECTS = [
     tags: ["Website", "Booking", "Hospitality"],
     result: "Direct bookings up 45%",
     plan: "Growth",
-    image: "/portfolio/hospitality.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "Cape Physio Centre",
@@ -78,7 +78,7 @@ const PROJECTS = [
     tags: ["Healthcare", "Appointments", "SEO"],
     result: "2x organic traffic in 3 months",
     plan: "Growth",
-    image: "/portfolio/hospitality.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
   {
     title: "BrightSpark Electrical",
@@ -87,7 +87,7 @@ const PROJECTS = [
     tags: ["Trades", "Quotes", "Local SEO"],
     result: "Top 3 for local searches",
     plan: "Starter",
-    image: "/portfolio/professional.svg",
+    image: "/assets/images/portfolio-coming-soon.svg",
   },
 ];
 

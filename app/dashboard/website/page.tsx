@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Globe, ArrowUpRight, RefreshCw, BarChart2, FolderKanban, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default async function WebsitePage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login");
 
   const projects = await prisma.project.findMany({
     where: { userId, type: "website" },

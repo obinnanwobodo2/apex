@@ -485,7 +485,7 @@ function StepInvoice({
           <div className="px-5 py-4 grid grid-cols-2 gap-4 border-b border-gray-200">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">From</p>
-              <p className="text-sm font-bold text-brand-navy">Apex Visuals</p>
+              <p className="text-sm font-bold text-brand-navy">Apex Visual</p>
               <p className="text-xs text-gray-500">info@apexvisual.co.za</p>
               <p className="text-xs text-gray-500">Johannesburg, ZA</p>
             </div>
@@ -501,7 +501,7 @@ function StepInvoice({
           <div className="px-5 py-4 border-b border-gray-200 space-y-3">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-brand-navy">Apex Visuals {pkg.name} Package</p>
+                <p className="text-sm font-semibold text-brand-navy">Apex Visual {pkg.name} Package</p>
                 <p className="text-xs text-gray-500 mt-0.5">Monthly retainer · Recurring subscription</p>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="text-xs bg-brand-green/10 text-brand-green font-medium px-2 py-0.5 rounded-full">

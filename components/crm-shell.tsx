@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { useUser, useClerk } from "@clerk/nextjs";
 
 const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+const INACTIVITY_WARNING_MS = 60 * 1000;
+const LAST_LOGIN_STORAGE_KEY = "apex_last_login_at";
 
 const NAV_ITEMS = [
   { href: "/crm", icon: <LayoutDashboard className="h-4 w-4" />, label: "Overview" },
@@ -28,7 +30,12 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const { signOut } = useClerk();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [timeoutWarningOpen, setTimeoutWarningOpen] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(Math.floor(INACTIVITY_WARNING_MS / 1000));
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const displayName = user?.fullName || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
   const email = user?.emailAddresses[0]?.emailAddress || "";
@@ -41,6 +48,14 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
 
   const resetTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (warningTimer.current) clearTimeout(warningTimer.current);
+    if (countdownInterval.current) clearInterval(countdownInterval.current);
+    setTimeoutWarningOpen(false);
+    setSecondsLeft(Math.floor(INACTIVITY_WARNING_MS / 1000));
+    warningTimer.current = setTimeout(() => {
+      setTimeoutWarningOpen(true);
+      setSecondsLeft(Math.floor(INACTIVITY_WARNING_MS / 1000));
+    }, INACTIVITY_TIMEOUT - INACTIVITY_WARNING_MS);
     inactivityTimer.current = setTimeout(handleSignOut, INACTIVITY_TIMEOUT);
   }, [handleSignOut]);
 
@@ -51,7 +66,34 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
     return () => {
       events.forEach((e) => window.removeEventListener(e, resetTimer));
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      if (warningTimer.current) clearTimeout(warningTimer.current);
+      if (countdownInterval.current) clearInterval(countdownInterval.current);
     };
+  }, [resetTimer]);
+
+  useEffect(() => {
+    if (!timeoutWarningOpen) return;
+    countdownInterval.current = setInterval(() => {
+      setSecondsLeft((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => {
+      if (countdownInterval.current) clearInterval(countdownInterval.current);
+    };
+  }, [timeoutWarningOpen]);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const previous = localStorage.getItem(LAST_LOGIN_STORAGE_KEY);
+      if (previous) setLastLogin(previous);
+      localStorage.setItem(LAST_LOGIN_STORAGE_KEY, new Date().toISOString());
+    } catch {
+      // no-op
+    }
+  }, [user]);
+
+  const continueSession = useCallback(() => {
+    resetTimer();
   }, [resetTimer]);
 
   const currentLabel = NAV_ITEMS.find((n) => n.href === pathname)?.label ?? "CRM";
@@ -60,7 +102,7 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-full">
       <div className="px-5 py-5 border-b border-gray-100">
         <Link href="/" onClick={() => setSidebarOpen(false)}>
-          <Image src="/logo.svg" alt="Apex Visuals" width={140} height={56} className="h-9 w-auto" />
+          <Image src="/logo.svg" alt="Apex Visual" width={140} height={56} className="h-9 w-auto" />
         </Link>
       </div>
 
@@ -109,6 +151,9 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-brand-navy truncate">{displayName}</p>
             <p className="text-xs text-gray-400 truncate">{email}</p>
+            <p className="text-[11px] text-gray-400 truncate">
+              Last login: {lastLogin ? new Date(lastLogin).toLocaleString("en-ZA") : "First login"}
+            </p>
           </div>
         </div>
         <button
@@ -166,6 +211,31 @@ export default function CrmShell({ children }: { children: React.ReactNode }) {
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
       </div>
+
+      {timeoutWarningOpen && (
+        <div className="fixed inset-0 z-[80] bg-gray-900/35 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl">
+            <h3 className="text-base font-bold text-brand-navy">Session timeout warning</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              You will be signed out in {secondsLeft}s due to inactivity.
+            </p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={handleSignOut}
+                className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:text-brand-navy hover:border-gray-300"
+              >
+                Sign out
+              </button>
+              <button
+                onClick={continueSession}
+                className="px-3 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#1b2340] to-[#2dc5a2] hover:opacity-90"
+              >
+                Stay signed in
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

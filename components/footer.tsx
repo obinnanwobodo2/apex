@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Phone, MapPin, Globe } from "lucide-react";
+import NewsletterForm from "@/components/newsletter-form";
 
 const FOOTER_LINKS = {
   Company: [
@@ -37,13 +38,6 @@ const LEGAL = [
   { label: "Refund Policy", href: "/refund-policy" },
 ];
 
-const SOCIAL = [
-  { abbr: "X", href: "https://twitter.com", label: "Twitter / X" },
-  { abbr: "in", href: "https://linkedin.com", label: "LinkedIn" },
-  { abbr: "ig", href: "https://instagram.com", label: "Instagram" },
-  { abbr: "fb", href: "https://facebook.com", label: "Facebook" },
-];
-
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200">
@@ -52,7 +46,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-5">
-              <Image src="/logo.svg" alt="Apex Visuals" width={140} height={56} className="h-9 w-auto" />
+              <Image src="/logo.svg" alt="Apex Visual" width={140} height={56} className="h-9 w-auto" />
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed mb-6 max-w-xs">
               South Africa&apos;s modern web design and digital services agency. We build, manage
@@ -65,6 +59,16 @@ export default function Footer() {
                 className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
                 <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
                 info@apexvisual.co.za
+              </a>
+              <a href="mailto:privacy@apexvisual.co.za"
+                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
+                <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
+                privacy@apexvisual.co.za
+              </a>
+              <a href="mailto:legal@apexvisual.co.za"
+                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
+                <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
+                legal@apexvisual.co.za
               </a>
               <a href="tel:+27754598388"
                 className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
@@ -82,15 +86,8 @@ export default function Footer() {
               </a>
             </div>
 
-            {/* Social */}
-            <div className="flex items-center gap-2 mt-6">
-              {SOCIAL.map(({ abbr, href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                  className="w-8 h-8 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors text-[10px] font-bold uppercase">
-                  {abbr}
-                </a>
-              ))}
-            </div>
+            <NewsletterForm />
+
           </div>
 
           {/* Link columns */}
@@ -114,7 +111,7 @@ export default function Footer() {
         {/* Divider */}
         <div className="border-t border-gray-200 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-500 text-center sm:text-left">
-            © {new Date().getFullYear()} Apex Visuals (Pty) Ltd. All rights reserved. Reg. No. 2025/876555/07
+            © {new Date().getFullYear()} Apex Visual (Pty) Ltd. All rights reserved. Reg. No. 2025/876555/07
           </p>
           <div className="flex flex-wrap items-center gap-4">
             {LEGAL.map((l) => (

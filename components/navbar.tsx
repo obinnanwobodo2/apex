@@ -1,32 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, LogIn, LayoutDashboard, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { useUser, SignOutButton } from "@clerk/nextjs";
 
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/about", label: "About" },
-  {
-    label: "More",
-    children: [
-      { href: "/client-dashboard", label: "Client Dashboard" },
-      { href: "/#how-it-works", label: "How It Works" },
-      { href: "/#packages", label: "Pricing" },
-      { href: "/#faq", label: "FAQ" },
-      { href: "/contact", label: "Contact" },
-    ],
-  },
+  { href: "/contact", label: "Contact" },
+  { href: "/login", label: "Sign In" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [dropdown, setDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { isSignedIn } = useUser();
 
   useEffect(() => {
@@ -36,21 +26,9 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const onClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
-  useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsOpen(false);
-        setDropdown(false);
       }
     };
     document.addEventListener("keydown", onEscape);
@@ -65,43 +43,20 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsOpen(false)}>
-            <Image src="/logo.svg" alt="Apex Visuals" width={140} height={56} className="h-9 w-auto" />
+            <Image src="/logo.svg" alt="Apex Visual" width={140} height={56} className="h-9 w-auto" />
           </Link>
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            {NAV_LINKS.map((link) =>
-              link.children ? (
-                <div key={link.label} className="relative" ref={dropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setDropdown((prev) => !prev)}
-                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                    aria-expanded={dropdown}
-                    aria-haspopup="menu"
-                  >
-                    {link.label}
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </button>
-                  {dropdown && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl py-2 z-50" role="menu">
-                      {link.children.map((child) => (
-                        <Link key={child.href} href={child.href}
-                          onClick={() => setDropdown(false)}
-                          className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link key={link.href} href={link.href!}
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                  {link.label}
-                </Link>
-              )
-            )}
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {/* CTA buttons */}
@@ -118,19 +73,7 @@ export default function Navbar() {
                   </button>
                 </SignOutButton>
               </>
-            ) : (
-              <>
-                <Link href="/login"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                  <LogIn className="h-4 w-4" />Sign in
-                </Link>
-                <Link href="/register"
-                  className="px-4 py-2 rounded-lg text-sm font-bold text-white transition-all"
-                  style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
-                  Get Started
-                </Link>
-              </>
-            )}
+            ) : null}
           </div>
 
           <button
@@ -150,17 +93,11 @@ export default function Navbar() {
         <div id="mobile-nav" className="md:hidden bg-white border-t border-gray-200 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
             {NAV_LINKS.flatMap((link) =>
-              link.children
-                ? link.children.map((c) => (
-                    <Link key={c.href} href={c.href}
-                      className="block text-sm font-medium text-gray-600 py-2 hover:text-gray-900 px-3 rounded-lg hover:bg-gray-100"
-                      onClick={() => setIsOpen(false)}>{c.label}</Link>
-                  ))
-                : [
-                    <Link key={link.href} href={link.href!}
-                      className="block text-sm font-medium text-gray-600 py-2 hover:text-gray-900 px-3 rounded-lg hover:bg-gray-100"
-                      onClick={() => setIsOpen(false)}>{link.label}</Link>,
-                  ]
+              [
+                <Link key={link.href} href={link.href}
+                  className="block text-sm font-medium text-gray-600 py-2 hover:text-gray-900 px-3 rounded-lg hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}>{link.label}</Link>,
+              ]
             )}
             <div className="pt-3 border-t border-gray-200 flex flex-col gap-2">
               {isSignedIn ? (
@@ -175,19 +112,7 @@ export default function Navbar() {
                     </button>
                   </SignOutButton>
                 </>
-              ) : (
-                <>
-                  <Link href="/login" onClick={() => setIsOpen(false)}
-                    className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-900 text-center">
-                    Sign in
-                  </Link>
-                  <Link href="/register" onClick={() => setIsOpen(false)}
-                    className="px-4 py-2.5 rounded-lg text-sm font-bold text-white text-center"
-                    style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
-                    Get Started
-                  </Link>
-                </>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

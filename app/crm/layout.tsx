@@ -33,6 +33,14 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
             <p className="text-gray-500 leading-relaxed max-w-2xl mx-auto">
               Choose a CRM plan below. Once selected, you&apos;ll be taken to secure checkout to make payment and unlock CRM immediately.
             </p>
+            <div className="mt-4">
+              <Link
+                href="/crm-demo"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-brand-navy hover:border-gray-300 hover:bg-white"
+              >
+                Try CRM Demo First
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -59,12 +67,21 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
                   href={`/checkout?package=${plan.id}`}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#1b2340] to-[#2dc5a2] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
-                  Choose & Pay
+                  Continue to Checkout
                   <ArrowRight className="h-4 w-4" />
                 </Link>
+                {plan.id === "crm-starter" && (
+                  <p className="mt-2 text-[11px] text-gray-500">
+                    Launch offer: {formatCurrency(plan.price)}/month after trial.
+                  </p>
+                )}
               </div>
             ))}
           </div>
+
+          <p className="text-center text-xs text-gray-500 mt-5">
+            Cancellation terms: monthly auto-renewal with 30 days written notice before cancellation.
+          </p>
 
           <div className="text-center mt-6">
             <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">

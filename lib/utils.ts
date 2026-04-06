@@ -90,7 +90,7 @@ export const CRM_PACKAGES = {
   "crm-starter": {
     id: "crm-starter",
     name: "CRM Starter",
-    price: 500,
+    price: 199,
     badge: "ESSENTIAL",
     tagline: "Simple CRM for small teams",
     turnaround: "1–2 business days setup",

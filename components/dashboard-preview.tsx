@@ -9,14 +9,21 @@ const PREVIEW_TABS = [
   { icon: <Users className="h-3.5 w-3.5" />, label: "CRM" },
 ];
 
-const STATS = [
-  { label: "Active Projects", value: "2", sub: "1 in review", color: "text-brand-green" },
-  { label: "Subscription", value: "Growth", sub: "Next bill May 1", color: "text-brand-navy" },
-  { label: "Pipeline Value", value: "R48,500", sub: "6 open deals", color: "text-brand-navy" },
-  { label: "Tasks Due", value: "4", sub: "1 overdue", color: "text-brand-navy" },
-];
-
 export default function DashboardPreview() {
+  const nextBillDate = new Date();
+  nextBillDate.setMonth(nextBillDate.getMonth() + 1);
+  const stats = [
+    { label: "Active Projects", value: "2", sub: "1 in review", color: "text-brand-green" },
+    {
+      label: "Subscription",
+      value: "Growth",
+      sub: `Next bill ${nextBillDate.toLocaleDateString("en-ZA", { month: "short", day: "numeric", year: "numeric" })}`,
+      color: "text-brand-navy",
+    },
+    { label: "Pipeline Value", value: "R48,500", sub: "6 open deals", color: "text-brand-navy" },
+    { label: "Tasks Due", value: "4", sub: "1 overdue", color: "text-brand-navy" },
+  ];
+
   return (
     <section className="py-24 px-4 bg-brand-navy overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -101,7 +108,7 @@ export default function DashboardPreview() {
                 <div className="flex-1 p-4 overflow-hidden">
                   <div className="text-white/60 text-xs font-medium mb-3">Welcome back</div>
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    {STATS.map((s) => (
+                    {stats.map((s) => (
                       <div key={s.label} className="bg-white/5 rounded-xl p-2.5 border border-white/5">
                         <div className={`text-lg font-extrabold ${s.color}`}>{s.value}</div>
                         <div className="text-[10px] text-white/50 font-medium">{s.label}</div>

@@ -4,8 +4,8 @@ import Footer from "@/components/footer";
 import TermlyPolicyEmbed from "@/components/termly-policy-embed";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Apex Visuals",
-  description: "Read how Apex Visuals collects, uses, and protects personal information.",
+  title: "Privacy Policy | Apex Visual",
+  description: "Read how Apex Visual collects, uses, and protects personal information.",
 };
 
 const SECTIONS = [
@@ -43,7 +43,7 @@ const SECTIONS = [
   },
   {
     title: "9. Contact",
-    body: "For privacy-related requests, contact info@apexvisual.co.za.",
+    body: "For privacy-related requests, contact privacy@apexvisual.co.za.",
   },
 ];
 

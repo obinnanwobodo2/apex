@@ -3,8 +3,8 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | Apex Visuals",
-  description: "Read how Apex Visuals uses cookies and similar technologies.",
+  title: "Cookie Policy | Apex Visual",
+  description: "Read how Apex Visual uses cookies and similar technologies.",
 };
 
 const SECTIONS = [
@@ -18,11 +18,11 @@ const SECTIONS = [
   },
   {
     title: "3. Types of Cookies We Use",
-    body: "We may use essential cookies (required for core functionality), analytics cookies (to understand usage trends), and functional cookies (to improve personalization and user experience).",
+    body: "We may use essential cookies (required for core functionality), analytics cookies (to understand usage trends), functional cookies (to improve personalization), and marketing cookies only after consent.",
   },
   {
     title: "4. Third-Party Cookies",
-    body: "Some cookies may be set by trusted third-party tools used for authentication, payments, analytics, and integrations. These providers have their own privacy and cookie policies.",
+    body: "Some cookies may be set by trusted third-party tools used for authentication, payments, analytics, and integrations. Marketing pixels are loaded only after cookie consent. These providers have their own privacy and cookie policies.",
   },
   {
     title: "5. Managing Cookies",
