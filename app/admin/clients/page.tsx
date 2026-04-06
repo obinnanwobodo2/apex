@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Users, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminClientsPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login?redirect_url=/admin/clients");
 
   const clients = await prisma.profile.findMany({
     include: {

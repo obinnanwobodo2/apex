@@ -134,6 +134,46 @@ function validateDatabaseUrl() {
   if (isProduction && /localhost|127\.0\.0\.1/i.test(value)) {
     addIssue("DATABASE_URL must not point to localhost in production.");
   }
+
+  if (isProduction && !/sslmode=require/i.test(value)) {
+    warnings.push("DATABASE_URL should include sslmode=require in production.");
+  }
+}
+
+function validateDirectDatabaseUrl() {
+  const value = getEnv("DIRECT_URL");
+  if (!value) return;
+
+  if (value.startsWith("file:")) {
+    addIssue("DIRECT_URL points to SQLite. Use PostgreSQL for migrations.");
+    return;
+  }
+
+  if (!/^postgres(ql)?:\/\//i.test(value)) {
+    addIssue("DIRECT_URL must be a PostgreSQL connection string.");
+  }
+
+  if (isProduction && /localhost|127\.0\.0\.1/i.test(value)) {
+    addIssue("DIRECT_URL must not point to localhost in production.");
+  }
+
+  if (isProduction && !/sslmode=require/i.test(value)) {
+    warnings.push("DIRECT_URL should include sslmode=require in production.");
+  }
+}
+
+function validatePooledRuntimeNeedsDirectUrl() {
+  const databaseUrl = getEnv("DATABASE_URL").toLowerCase();
+  if (!databaseUrl) return;
+
+  const looksPooled =
+    databaseUrl.includes("pooler.supabase.com") ||
+    databaseUrl.includes("pgbouncer=true") ||
+    databaseUrl.includes(":6543/");
+
+  if (looksPooled && !hasEnv("DIRECT_URL")) {
+    addIssue("DIRECT_URL is required when DATABASE_URL uses a pooled/pgBouncer connection.");
+  }
 }
 
 console.log(`[deploy-check] Running preflight for mode: ${runtimeMode}`);
@@ -147,6 +187,8 @@ requireEnv("PAYSTACK_SECRET_KEY");
 requireOneOf(["OWNER_USER_ID", "OWNER_EMAIL", "ADMIN_EMAILS", "ADMIN_USER_IDS"]);
 
 validateDatabaseUrl();
+validateDirectDatabaseUrl();
+validatePooledRuntimeNeedsDirectUrl();
 validateUrl("NEXT_PUBLIC_APP_URL", { httpsOnly: true, allowLocalHttp: true });
 validateUrl("SECURITY_ALERT_WEBHOOK_URL", { httpsOnly: true });
 validateUrl("APP_ALERT_WEBHOOK_URL", { httpsOnly: true });
@@ -174,6 +216,10 @@ if (hasEnv("ADMIN_BASIC_USERNAME") !== hasEnv("ADMIN_BASIC_PASSWORD")) {
 
 if (isProduction && getEnv("ALLOW_ADMIN_DEV_FALLBACK").toLowerCase() === "true") {
   addIssue("ALLOW_ADMIN_DEV_FALLBACK must be false in production.");
+}
+
+if (isProduction && getEnv("ENABLE_TEST_PAYMENTS").toLowerCase() === "true") {
+  addIssue("ENABLE_TEST_PAYMENTS must be false in production.");
 }
 
 validateKeyPrefix("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY", ["pk_test"]);

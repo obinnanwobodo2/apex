@@ -1,38 +1,71 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 
-const LEGACY_ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS ?? "")
-  .split(",")
-  .map((v) => v.trim())
-  .filter(Boolean);
+function stripWrappingQuotes(value: string) {
+  return value.replace(/^['"]+|['"]+$/g, "");
+}
 
-const LEGACY_ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
-  .split(",")
-  .map((v) => v.trim().toLowerCase())
-  .filter(Boolean);
+function normalizeCsv(raw: string, { lowerCase = false } = {}) {
+  return raw
+    .split(",")
+    .map((v) => stripWrappingQuotes(v.trim()))
+    .filter(Boolean)
+    .map((v) => (lowerCase ? v.toLowerCase() : v));
+}
 
-const OWNER_USER_ID = (process.env.OWNER_USER_ID ?? "").trim();
-const OWNER_EMAIL = (process.env.OWNER_EMAIL ?? "").trim().toLowerCase();
+function normalizeEmail(value: unknown) {
+  if (typeof value !== "string") return "";
+  return stripWrappingQuotes(value.trim()).toLowerCase();
+}
+
+const LEGACY_ADMIN_USER_IDS = normalizeCsv(process.env.ADMIN_USER_IDS ?? "");
+
+const LEGACY_ADMIN_EMAILS = normalizeCsv(process.env.ADMIN_EMAILS ?? "", {
+  lowerCase: true,
+});
+
+const OWNER_USER_ID = stripWrappingQuotes((process.env.OWNER_USER_ID ?? "").trim());
+const OWNER_EMAIL = normalizeEmail(process.env.OWNER_EMAIL ?? "");
 
 export async function getAdminAccess() {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) return { userId: null, isAdmin: false, isOwner: false };
 
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
+  const hasStrictOwner = Boolean(OWNER_USER_ID || OWNER_EMAIL);
+  const allowedUserIds = hasStrictOwner
+    ? [OWNER_USER_ID].filter(Boolean)
+    : LEGACY_ADMIN_USER_IDS;
+  const allowedEmails = hasStrictOwner
+    ? [OWNER_EMAIL].filter(Boolean)
+    : LEGACY_ADMIN_EMAILS;
+  const ownerConfigured = allowedUserIds.length > 0 || allowedEmails.length > 0;
 
-  // Single-owner enforcement:
-  // 1) Preferred: OWNER_USER_ID / OWNER_EMAIL
-  // 2) Legacy fallback: first ADMIN_USER_IDS / ADMIN_EMAILS value only
-  const resolvedOwnerUserId = OWNER_USER_ID || LEGACY_ADMIN_USER_IDS[0] || "";
-  const resolvedOwnerEmail = OWNER_EMAIL || LEGACY_ADMIN_EMAILS[0] || "";
-  const ownerConfigured = Boolean(resolvedOwnerUserId || resolvedOwnerEmail);
-
-  const isOwner =
-    (resolvedOwnerUserId ? userId === resolvedOwnerUserId : false) ||
-    (resolvedOwnerEmail ? email === resolvedOwnerEmail : false);
-
-  // If no owner account is configured, deny admin access by default.
   if (!ownerConfigured) return { userId, isAdmin: false, isOwner: false };
+  if (allowedUserIds.includes(userId)) return { userId, isAdmin: true, isOwner: true };
 
+  const emailCandidates = new Set<string>();
+  const claims = (sessionClaims ?? {}) as Record<string, unknown>;
+  const addCandidate = (candidate: unknown) => {
+    const email = normalizeEmail(candidate);
+    if (email) emailCandidates.add(email);
+  };
+
+  addCandidate(claims.email);
+  addCandidate(claims.primary_email);
+  addCandidate(claims.email_address);
+
+  // Fallback to Clerk user lookup when claims do not expose email.
+  if (allowedEmails.length > 0 && !allowedEmails.some((email) => emailCandidates.has(email))) {
+    try {
+      const user = await currentUser();
+      addCandidate(user?.primaryEmailAddress?.emailAddress);
+      for (const emailAddress of user?.emailAddresses ?? []) {
+        addCandidate(emailAddress.emailAddress);
+      }
+    } catch {
+      // If Clerk user lookup fails, deny by default.
+    }
+  }
+
+  const isOwner = allowedEmails.some((email) => emailCandidates.has(email));
   return { userId, isAdmin: isOwner, isOwner };
 }

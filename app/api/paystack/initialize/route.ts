@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { initializeTransaction, generateReference } from "@/lib/paystack";
 import { ALL_PACKAGES, PACKAGES, calculateTotal, type AnyPackageId } from "@/lib/utils";
 import { logApplicationError } from "@/lib/security-monitoring";
+import { isTestPaymentModeEnabled } from "@/lib/payment-mode";
 import {
   readJsonObject,
   sanitizeDate,
@@ -24,6 +25,7 @@ function cleanStringArray(value: unknown) {
 
 export async function POST(req: Request) {
   try {
+    const testPaymentMode = isTestPaymentModeEnabled();
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -93,6 +95,14 @@ export async function POST(req: Request) {
           invoiceNumber: existing.invoiceNumber ?? (sanitizeText(invoiceNumber, { maxLength: 80 }) ?? null),
         },
       });
+
+      if (testPaymentMode) {
+        return NextResponse.json({
+          authorization_url: `${origin}/success?reference=${encodeURIComponent(reference)}&mode=test`,
+          reference,
+          testMode: true,
+        });
+      }
 
       const result = await initializeTransaction({
         email: userEmail,
@@ -211,6 +221,14 @@ export async function POST(req: Request) {
 
     const origin = (req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "").trim();
     if (!origin) return NextResponse.json({ error: "Application URL is not configured" }, { status: 500 });
+
+    if (testPaymentMode) {
+      return NextResponse.json({
+        authorization_url: `${origin}/success?reference=${encodeURIComponent(reference)}&mode=test`,
+        reference,
+        testMode: true,
+      });
+    }
 
     const result = await initializeTransaction({
       email: userEmail,

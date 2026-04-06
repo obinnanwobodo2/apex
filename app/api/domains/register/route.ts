@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { initializeTransaction, generateReference } from "@/lib/paystack";
 import { calculateTotal, generateInvoiceNumber } from "@/lib/utils";
 import { logApplicationError } from "@/lib/security-monitoring";
+import { isTestPaymentModeEnabled } from "@/lib/payment-mode";
 import {
   buildDomainPurchaseMeta,
   checkDomainAvailability,
@@ -54,6 +55,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const testPaymentMode = isTestPaymentModeEnabled();
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -161,6 +163,18 @@ export async function POST(req: Request) {
       }),
     },
   });
+
+  if (testPaymentMode) {
+    return NextResponse.json({
+      success: true,
+      authorization_url: `${origin}/success?reference=${encodeURIComponent(reference)}&mode=test`,
+      reference,
+      invoiceNumber,
+      domain: normalizedDomain,
+      priceLabel: formatDomainPrice(normalizedDomain),
+      testMode: true,
+    });
+  }
 
   try {
     const payment = await initializeTransaction({

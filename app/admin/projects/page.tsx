@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import AdminProjectsClient from "@/components/admin-projects";
 
 export default async function AdminProjectsPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login?redirect_url=/admin/projects");
 
   const projects = await prisma.project.findMany({
     where: {

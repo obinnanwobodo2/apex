@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -6,7 +7,7 @@ import { TrendingUp, CreditCard } from "lucide-react";
 
 export default async function AdminBillingPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login?redirect_url=/admin/billing");
 
   const subscriptions = await prisma.subscription.findMany({
     orderBy: { createdAt: "desc" },

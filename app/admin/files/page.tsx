@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { listAllStoredFiles } from "@/lib/file-storage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ function formatBytes(size: number) {
 
 export default async function AdminFilesPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login?redirect_url=/admin/files");
 
   const files = await listAllStoredFiles();
   const userIds = Array.from(new Set(files.map((file) => file.userId)));

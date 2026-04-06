@@ -8,7 +8,10 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 cp .env.local.example .env.local
 ```
 
-2. Set `DATABASE_URL` to a PostgreSQL database.
+2. Set database env vars.
+
+- `DATABASE_URL`: runtime connection string (recommended: Supabase pooler/pgBouncer URL)
+- `DIRECT_URL`: direct Postgres URL for Prisma migrations (`db.<project-ref>.supabase.co:5432`)
 
 3. Install dependencies and apply schema:
 
@@ -54,6 +57,7 @@ This app includes baseline production protections:
 ### Required environment variables
 
 - `DATABASE_URL` (PostgreSQL)
+- `DIRECT_URL` (direct Postgres connection for Prisma migrations)
 - `NEXT_PUBLIC_APP_URL`
 - `PAYSTACK_SECRET_KEY`
 - `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
@@ -62,11 +66,21 @@ This app includes baseline production protections:
 - `OWNER_USER_ID` (recommended) or `OWNER_EMAIL` to lock admin to only one owner account
 - Optional legacy fallback: `ADMIN_EMAILS` and/or `ADMIN_USER_IDS` (only first value is treated as owner)
 - Optional: `ALLOWED_CORS_ORIGINS` (comma-separated trusted browser origins)
+- Optional (dev/preview only): `ENABLE_TEST_PAYMENTS=true` to simulate successful checkout without charging cards
 - Optional: `SECURITY_ALERT_WEBHOOK_URL` for security alerts
 - Optional: `APP_ALERT_WEBHOOK_URL` for non-security runtime/crash alerts
 - Optional: `NEXT_PUBLIC_TERMLY_PRIVACY_POLICY_ID` + `NEXT_PUBLIC_TERMLY_TERMS_OF_USE_ID`
 
 If you use Supabase APIs with Clerk JWTs, apply [`supabase-clerk-rls.sql`](./supabase-clerk-rls.sql).
+
+## Test Payments (No Real Charges)
+
+Use this only for development or preview testing.
+
+1. Set `ENABLE_TEST_PAYMENTS=true` in your `.env.local`.
+2. Keep non-production keys/domains for local testing.
+3. Checkout and domain purchase flows will redirect directly to success and verify through a safe test mode path.
+4. In production, keep `ENABLE_TEST_PAYMENTS=false`.
 
 ## Monitoring
 
@@ -89,7 +103,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 1. Add all environment variables from `.env.local.example` in Vercel Project Settings.
 
-2. Ensure `DATABASE_URL` points to production PostgreSQL (Supabase/Neon/RDS).
+2. Ensure runtime DB is set to production PostgreSQL (Supabase/Neon/RDS).
+
+- `DATABASE_URL` should be your runtime pooled URL.
+- `DIRECT_URL` should be your direct DB URL for schema migrations.
 
 3. Use Clerk production keys (`pk_live`, `sk_live`) and add your live domain in Clerk dashboard.
    - Password reset link/code expiry is controlled by Clerk settings and defaults.
@@ -98,7 +115,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 4. Set `NEXT_PUBLIC_APP_URL` to your exact HTTPS domain (for example `https://yourdomain.com`).
 
-5. Run migrations on production database:
+5. Run migrations on production database (uses `DIRECT_URL` when set):
 
 ```bash
 npm run db:deploy

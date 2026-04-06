@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Users, CreditCard, TrendingUp, Activity, ArrowUpRight, Users2, FolderKanban, Banknote, LayoutDashboard, LifeBuoy, Bot, FileImage } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminOverviewPage() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) redirect("/login?redirect_url=/admin");
 
   const [totalProfiles, totalSubs, activeSubs, totalProjects] = await Promise.all([
     prisma.profile.count(),
