@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, ALL_PACKAGES } from "@/lib/utils";
-import Link from "next/link";
 
 interface Subscription {
   id: string;
