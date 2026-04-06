@@ -4,11 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Globe, TrendingUp, Calendar, ArrowUpRight,
-  Clock, CheckCircle2, XCircle, Plus, FolderKanban, MessageCircle,
+  CheckCircle2, XCircle, FolderKanban, MessageCircle,
   Upload, CreditCard, Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, ALL_PACKAGES, type PackageId } from "@/lib/utils";
 import PlansFlow from "@/components/plans-flow";

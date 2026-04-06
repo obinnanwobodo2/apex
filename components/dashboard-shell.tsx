@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Globe, CreditCard, Settings, LogOut,
+  LayoutDashboard, CreditCard, Settings, LogOut,
   Bell, Menu, ChevronRight, User, Users, BarChart3,
   MessageCircle, FolderKanban, X, Search, FileText, Sparkles, Server,
 } from "lucide-react";
