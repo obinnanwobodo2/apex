@@ -60,16 +60,6 @@ export default function Footer() {
                 <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
                 info@apexvisual.co.za
               </a>
-              <a href="mailto:privacy@apexvisual.co.za"
-                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
-                <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
-                privacy@apexvisual.co.za
-              </a>
-              <a href="mailto:legal@apexvisual.co.za"
-                className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors group break-all">
-                <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
-                legal@apexvisual.co.za
-              </a>
               <a href="tel:+27754598388"
                 className="flex items-center gap-2.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
                 <Phone className="h-4 w-4 text-brand-green flex-shrink-0" />

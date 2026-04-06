@@ -6,7 +6,6 @@ import LandingServices from "@/components/landing-services";
 import HowItWorks from "@/components/how-it-works";
 import PricingSection from "@/components/pricing-section";
 import LandingUpsells from "@/components/landing-upsells";
-import TestimonialsSection from "@/components/testimonials-section";
 import FaqSection from "@/components/faq-section";
 import LandingCta from "@/components/landing-cta";
 
@@ -28,7 +27,6 @@ export default function HomePage() {
       <HowItWorks />
       <PricingSection />
       <LandingUpsells />
-      <TestimonialsSection />
 
       {/* Credentials */}
       <section className="py-16 px-4 bg-white border-t border-gray-100">

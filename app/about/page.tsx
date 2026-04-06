@@ -13,7 +13,7 @@ const VALUES = [
 
 const STATS = [
   { value: "12+", label: "Projects delivered" },
-  { value: "Founded in 2018", label: "In business" },
+  { value: "Founded in 2024", label: "In business" },
   { value: "95%", label: "Client satisfaction" },
   { value: "5 days", label: "Average delivery" },
 ];
@@ -68,7 +68,7 @@ export default function AboutPage() {
                 covers everything, forever. No surprise invoices. No abandoned projects.
               </p>
               <p className="text-gray-500 leading-relaxed">
-                Founded in 2018, we are a growing studio serving businesses across South Africa —
+                Founded in 2024, we are a growing studio serving businesses across South Africa —
                 from solo consultants to growing companies — all on simple, transparent monthly plans.
               </p>
             </div>
@@ -107,7 +107,7 @@ export default function AboutPage() {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-extrabold text-brand-navy text-center mb-12">The team behind your website</h2>
-          <div className="flex flex-col items-center gap-6 mb-10">
+          <div className="flex flex-col items-center gap-6">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-sm w-full text-center">
               <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-brand-green/20 mx-auto mb-4 flex items-center justify-center text-gray-400 text-xs">
                 [Founder photo]
@@ -118,9 +118,6 @@ export default function AboutPage() {
               <a href="[LinkedIn URL]" className="text-xs text-brand-green underline">[LinkedIn URL]</a>
             </div>
           </div>
-          <p className="text-center text-gray-500 max-w-xl mx-auto">
-            We&apos;re a Johannesburg-based team of designers, developers, and strategists. Real people. Direct communication. No outsourced handoffs.
-          </p>
         </div>
       </section>
 

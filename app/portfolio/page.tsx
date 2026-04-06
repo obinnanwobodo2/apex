@@ -1,8 +1,7 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, ExternalLink, Star } from "lucide-react";
+import { ArrowRight, ExternalLink, Star, Scale, Scissors, HardHat, Calculator, Car, ShoppingBag, Hotel, Activity, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const INDUSTRIES = ["All", "Professional Services", "Retail & E-Commerce", "Food & Hospitality", "Health & Beauty", "Construction & Trade", "Finance & Legal"];
@@ -11,83 +10,92 @@ const PROJECTS = [
   {
     title: "Mokoena Legal Consultants",
     industry: "Finance & Legal",
-    description: "Complete rebrand + website for a Johannesburg law firm. Conversion-focused design with online consultation booking.",
+    description: "Full brand identity overhaul and website rebuild for a Johannesburg law firm. We designed a clean, authoritative site with a dedicated practice areas page, attorney profiles, and an online consultation booking form integrated with their diary. SEO-optimised from day one with structured data for local search.",
     tags: ["Website", "SEO", "Booking System"],
     result: "+3 new clients in week 1",
     plan: "Growth",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-[#1b2340] to-[#2d3a6b]",
+    Icon: Scale,
   },
   {
     title: "Naidoo Beauty Studio",
     industry: "Health & Beauty",
-    description: "Modern salon website with online booking, WhatsApp integration, and before/after gallery.",
+    description: "Modern salon website built on the Starter plan in 5 days. Features a multi-service online booking system, WhatsApp chat widget, before-and-after gallery with lightbox, and a client loyalty section. Mobile-first design optimised for Google Maps and 'near me' searches.",
     tags: ["Website", "Booking", "WhatsApp"],
     result: "Bookings up 60%",
     plan: "Starter",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-rose-500 to-pink-700",
+    Icon: Scissors,
   },
   {
     title: "Van Zyl Construction",
     industry: "Construction & Trade",
-    description: "Professional project showcase with quote request system, before/after galleries, and local SEO for Cape Town.",
+    description: "Project portfolio website with a quote request form, before/after photo galleries per project, and a services breakdown. We ran local SEO targeting Cape Town suburbs, built Google Business Profile citations, and added a click-to-call button optimised for mobile users on site.",
     tags: ["Website", "Portfolio", "Local SEO"],
     result: "Page 1 on Google in 6 weeks",
     plan: "Growth",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-amber-600 to-orange-700",
+    Icon: HardHat,
   },
   {
     title: "ZD Accounting",
     industry: "Finance & Legal",
-    description: "Clean, trustworthy website with service pages, client portal integration, and CRM for lead management.",
+    description: "Trust-focused website for a Johannesburg accounting firm — service pages for tax, payroll, and compliance, a secure client document portal, and CRM integration for lead capture. Monthly retainer includes quarterly content updates and ongoing technical SEO reporting.",
     tags: ["Website", "CRM", "Client Portal"],
     result: "30% more inquiries",
     plan: "Pro",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-[#1b2340] to-[#2dc5a2]",
+    Icon: Calculator,
   },
   {
     title: "Ferreira Automotive",
     industry: "Retail & E-Commerce",
-    description: "Parts e-commerce store with inventory management, Paystack checkout, and WhatsApp order updates.",
+    description: "Full e-commerce store for a Pretoria auto parts supplier. We built a searchable product catalogue with 300+ SKUs, inventory sync, Paystack checkout, and automated WhatsApp order notifications. The site went from zero to first sale in under 14 days after launch.",
     tags: ["E-Commerce", "Paystack", "WhatsApp"],
     result: "R120K in online sales month 1",
     plan: "Pro",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-slate-700 to-slate-900",
+    Icon: Car,
   },
   {
     title: "Patel Fashion Boutique",
     industry: "Retail & E-Commerce",
-    description: "Shopfront-style e-commerce with lookbook galleries, size guides, Instagram feed integration.",
+    description: "High-end fashion e-commerce with a curated lookbook layout, size-guide modals, persistent wishlist, and Instagram feed embedded on the homepage. Built on the Pro plan in 10 days with 80 products loaded, photographed, and described by our team.",
     tags: ["E-Commerce", "Fashion", "Instagram"],
     result: "80 products live in 10 days",
     plan: "Pro",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-purple-600 to-fuchsia-700",
+    Icon: ShoppingBag,
   },
   {
     title: "Sunrise Guesthouse",
     industry: "Food & Hospitality",
-    description: "Hospitality website with room showcase, pricing tables, and Airbnb-style booking integration.",
+    description: "Boutique guesthouse website with a room-by-room showcase, seasonal pricing tables, photo gallery, and a direct booking widget that bypasses Airbnb commissions. We added TripAdvisor schema markup to boost review visibility in search results.",
     tags: ["Website", "Booking", "Hospitality"],
     result: "Direct bookings up 45%",
     plan: "Growth",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-yellow-500 to-orange-500",
+    Icon: Hotel,
   },
   {
     title: "Cape Physio Centre",
     industry: "Health & Beauty",
-    description: "Healthcare website with appointment scheduling, therapist profiles, and medical SEO optimisation.",
+    description: "Healthcare website for a Cape Town physiotherapy practice — individual therapist profiles, condition-specific service pages, and an appointment scheduler with real-time availability. Medical SEO targeting 'physio near me' keywords drove organic growth over three months.",
     tags: ["Healthcare", "Appointments", "SEO"],
     result: "2x organic traffic in 3 months",
     plan: "Growth",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-teal-500 to-cyan-700",
+    Icon: Activity,
   },
   {
     title: "BrightSpark Electrical",
     industry: "Construction & Trade",
-    description: "Tradesperson website with instant quote tool, service area map, and emergency call button.",
+    description: "Lean, fast-loading tradesperson site built in 5 days. Highlights: an instant quote tool that sends enquiries to WhatsApp, a Google Maps service area widget, an emergency call button pinned to mobile screens, and a review feed pulling from Google Business Profile.",
     tags: ["Trades", "Quotes", "Local SEO"],
     result: "Top 3 for local searches",
     plan: "Starter",
-    image: "/assets/images/portfolio-coming-soon.svg",
+    bg: "from-yellow-400 to-amber-500",
+    Icon: Zap,
   },
 ];
 
@@ -131,42 +139,6 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      {/* Featured case study */}
-      {/* TODO: Replace placeholder content with a real client case study */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-green/10 text-brand-green text-sm font-medium mb-6">
-            <Star className="h-4 w-4 fill-brand-green" />
-            Featured case study
-          </div>
-          <h2 className="text-3xl font-extrabold text-brand-navy mb-10">In depth: [Client name]</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {[
-              { label: "[X]% increase in [metric]" },
-              { label: "[X] new [leads/bookings/sales] per month" },
-              { label: "Built in [X] days" },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-brand-navy rounded-2xl p-6 text-center">
-                <div className="text-2xl font-extrabold text-brand-green mb-1">[X]</div>
-                <div className="text-sm text-gray-300">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { heading: "The challenge", body: "[Describe the client's problem before working with us]" },
-              { heading: "What we built", body: "[Describe the solution: tech stack, design approach, timeline]" },
-              { heading: "The result", body: "[Specific measurable outcome: traffic, leads, revenue, time saved]" },
-            ].map((item) => (
-              <div key={item.heading} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                <h3 className="font-bold text-brand-navy mb-3">{item.heading}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Industry filter - display only, no client-side filtering for SSR */}
       <section className="py-6 px-4 border-b bg-white sticky top-16 z-10">
         <div className="max-w-6xl mx-auto flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -186,8 +158,8 @@ export default function PortfolioPage() {
           {PROJECTS.map((p) => (
             <div key={p.title} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
               {/* Cover */}
-              <div className="relative h-44 bg-gray-100">
-                <Image src={p.image} alt={`${p.title} project preview`} fill className="object-cover" />
+              <div className={`relative h-44 bg-gradient-to-br ${p.bg} flex items-center justify-center`}>
+                <p.Icon className="h-14 w-14 text-white/20" />
                 <div className="absolute top-3 right-3">
                   <span className="text-xs px-2.5 py-1 rounded-full bg-white/90 text-brand-navy font-medium border border-gray-200">{p.plan} Plan</span>
                 </div>
