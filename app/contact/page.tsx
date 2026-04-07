@@ -30,9 +30,19 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
-    await new Promise((r) => setTimeout(r, 1200)); // simulate send
-    setSent(true);
-    setSending(false);
+    try {
+      const res = await fetch("https://formspree.io/f/xqedgqkw", {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      setSent(true);
+    } catch {
+      // keep form visible so user can retry
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
