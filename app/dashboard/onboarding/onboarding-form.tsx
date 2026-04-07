@@ -4,13 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ArrowRight, ArrowLeft, Loader2, Globe, ShoppingBag, Camera, Calendar, FileText, Zap, Layout, BookOpen, MessageSquare, CreditCard } from "lucide-react";
+import {
+  Check, ArrowRight, ArrowLeft, Loader2, Globe, ShoppingBag, Camera,
+  Calendar, FileText, Zap, Layout, BookOpen, MessageSquare, CreditCard,
+  RefreshCw, Wrench, Server,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PACKAGES } from "@/lib/utils";
 
-const STEP_LABELS = ["Business", "Goals", "Style", "Review"];
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const BUSINESS_TYPES = [
   "Retail / Shop", "Professional Services", "Health & Beauty", "Food & Hospitality",
@@ -74,30 +79,42 @@ const PAGE_COUNTS = [
   { id: "not_sure", label: "Not sure" },
 ];
 
+const HOSTING_OPTIONS = [
+  { id: "none", label: "No hosting needed", desc: "I'll host it myself", icon: Server, price: null },
+  { id: "basic", label: "Basic Hosting", desc: "R200/mo — ideal for informational sites", icon: Server, price: 200 },
+  { id: "business", label: "Business Hosting", desc: "R400/mo — fast, priority support, e-commerce ready", icon: Server, price: 400 },
+];
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface FormData {
+  // Plan step (only shown when no subscription)
+  billingType: "retainer" | "once_off" | "";
+  selectedPlan: string; // retainer plan id
+  hostingPlan: string;  // once-off hosting choice
+  // Business step
   businessName: string;
   businessType: string;
   websiteType: string;
+  // Goals step
   goals: string[];
   features: string[];
   pageCount: string;
+  // Style step
   stylePreference: string;
   domainStatus: string;
   contentStatus: string;
   additionalNotes: string;
 }
 
+// ── Small reusable pieces ─────────────────────────────────────────────────────
+
 function ToggleChip({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <button type="button" onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
-        selected
-          ? "bg-brand-green/10 border-brand-green text-brand-green"
-          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-      }`}
-    >
+        selected ? "bg-brand-green/10 border-brand-green text-brand-green" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+      }`}>
       {selected && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
       {children}
     </button>
@@ -106,15 +123,10 @@ function ToggleChip({ selected, onClick, children }: { selected: boolean; onClic
 
 function RadioCard({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <button type="button" onClick={onClick}
       className={`relative w-full text-left p-4 rounded-xl border transition-all ${
-        selected
-          ? "bg-brand-green/5 border-brand-green"
-          : "bg-white border-gray-200 hover:border-gray-300"
-      }`}
-    >
+        selected ? "bg-brand-green/5 border-brand-green" : "bg-white border-gray-200 hover:border-gray-300"
+      }`}>
       {selected && (
         <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-brand-green flex items-center justify-center">
           <Check className="h-3 w-3 text-white" />
@@ -124,6 +136,8 @@ function RadioCard({ selected, onClick, children }: { selected: boolean; onClick
     </button>
   );
 }
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function OnboardingForm({
   subscriptionId,
@@ -135,10 +149,20 @@ export default function OnboardingForm({
   packageName: string;
 }) {
   const router = useRouter();
+  const needsPlanStep = !subscriptionId;
+
+  // Steps: if no plan yet → [Plan, Business, Goals, Style, Review], else [Business, Goals, Style, Review]
+  const STEP_LABELS = needsPlanStep
+    ? ["Plan", "Business", "Goals", "Style", "Review"]
+    : ["Business", "Goals", "Style", "Review"];
+
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState<FormData>({
+    billingType: "",
+    selectedPlan: "",
+    hostingPlan: "",
     businessName: defaultBusinessName,
     businessType: "",
     websiteType: "",
@@ -160,10 +184,21 @@ export default function OnboardingForm({
     }));
   }
 
+  // Map step index to logical step name
+  function stepName(i: number) {
+    return STEP_LABELS[i];
+  }
+
   function canAdvance() {
-    if (step === 0) return form.businessName.trim().length > 0 && form.businessType && form.websiteType;
-    if (step === 1) return form.goals.length > 0;
-    if (step === 2) return form.stylePreference && form.domainStatus && form.contentStatus;
+    const name = stepName(step);
+    if (name === "Plan") {
+      if (form.billingType === "retainer") return Boolean(form.selectedPlan);
+      if (form.billingType === "once_off") return Boolean(form.hostingPlan);
+      return false;
+    }
+    if (name === "Business") return form.businessName.trim().length > 0 && Boolean(form.businessType) && Boolean(form.websiteType);
+    if (name === "Goals") return form.goals.length > 0;
+    if (name === "Style") return Boolean(form.stylePreference) && Boolean(form.domainStatus) && Boolean(form.contentStatus);
     return true;
   }
 
@@ -171,7 +206,14 @@ export default function OnboardingForm({
     setSubmitting(true);
     setError("");
     try {
+      const planInfo = needsPlanStep
+        ? form.billingType === "retainer"
+          ? { billingType: "retainer", plan: form.selectedPlan }
+          : { billingType: "once_off", hosting: form.hostingPlan }
+        : { billingType: "subscription", plan: packageName };
+
       const notes = JSON.stringify({
+        ...planInfo,
         businessType: form.businessType,
         websiteType: form.websiteType,
         goals: form.goals,
@@ -181,7 +223,6 @@ export default function OnboardingForm({
         domainStatus: form.domainStatus,
         contentStatus: form.contentStatus,
         additionalNotes: form.additionalNotes,
-        package: packageName,
       });
 
       const res = await fetch("/api/projects", {
@@ -208,6 +249,8 @@ export default function OnboardingForm({
     }
   }
 
+  const currentLabel = STEP_LABELS[step];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-green/5 flex flex-col">
       {/* Header */}
@@ -220,10 +263,8 @@ export default function OnboardingForm({
 
       {/* Progress bar */}
       <div className="h-1 bg-gray-100">
-        <div
-          className="h-full bg-brand-green transition-all duration-300"
-          style={{ width: `${((step + 1) / STEP_LABELS.length) * 100}%` }}
-        />
+        <div className="h-full bg-brand-green transition-all duration-300"
+          style={{ width: `${((step + 1) / STEP_LABELS.length) * 100}%` }} />
       </div>
 
       <div className="flex-1 flex items-start justify-center px-4 py-10">
@@ -246,8 +287,100 @@ export default function OnboardingForm({
             ))}
           </div>
 
-          {/* Step 0: Business details */}
-          {step === 0 && (
+          {/* ── STEP: Plan ─────────────────────────────────────────────────── */}
+          {currentLabel === "Plan" && (
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl font-extrabold text-brand-navy">How would you like to pay?</h1>
+                <p className="text-gray-500 mt-1">Choose the model that suits your budget best.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <RadioCard selected={form.billingType === "retainer"} onClick={() => setForm({ ...form, billingType: "retainer", selectedPlan: "", hostingPlan: "" })}>
+                  <div className="flex items-start gap-3 pr-6">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${form.billingType === "retainer" ? "bg-brand-green/15" : "bg-gray-100"}`}>
+                      <RefreshCw className={`h-4 w-4 ${form.billingType === "retainer" ? "text-brand-green" : "text-gray-400"}`} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-brand-navy text-sm">Monthly Retainer</div>
+                      <div className="text-xs text-gray-500 mt-1 leading-relaxed">Website built for free. One monthly fee covers everything — hosting, updates, SEO, support.</div>
+                    </div>
+                  </div>
+                </RadioCard>
+
+                <RadioCard selected={form.billingType === "once_off"} onClick={() => setForm({ ...form, billingType: "once_off", selectedPlan: "", hostingPlan: "" })}>
+                  <div className="flex items-start gap-3 pr-6">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${form.billingType === "once_off" ? "bg-brand-green/15" : "bg-gray-100"}`}>
+                      <Wrench className={`h-4 w-4 ${form.billingType === "once_off" ? "text-brand-green" : "text-gray-400"}`} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-brand-navy text-sm">Once-Off Build</div>
+                      <div className="text-xs text-gray-500 mt-1 leading-relaxed">Pay once for your website. Add optional hosting separately. You own it outright.</div>
+                    </div>
+                  </div>
+                </RadioCard>
+              </div>
+
+              {/* Retainer plans */}
+              {form.billingType === "retainer" && (
+                <div className="space-y-3">
+                  <Label>Choose your retainer plan *</Label>
+                  {Object.values(PACKAGES).map((pkg) => (
+                    <RadioCard key={pkg.id} selected={form.selectedPlan === pkg.id} onClick={() => setForm({ ...form, selectedPlan: pkg.id })}>
+                      <div className="flex items-center justify-between pr-6">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-brand-navy text-sm">{pkg.name}</span>
+                            {pkg.popular && <span className="text-[10px] bg-brand-green/15 text-brand-green px-2 py-0.5 rounded-full font-bold">Most Popular</span>}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">{pkg.tagline}</div>
+                          <ul className="mt-2 space-y-1">
+                            {pkg.features.slice(0, 3).map((f) => (
+                              <li key={f} className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <Check className="h-3 w-3 text-brand-green flex-shrink-0" />{f}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <div className="text-lg font-extrabold text-brand-navy">R{pkg.price.toLocaleString()}</div>
+                          <div className="text-xs text-gray-400">/month</div>
+                        </div>
+                      </div>
+                    </RadioCard>
+                  ))}
+                  <p className="text-xs text-gray-400">Prices excl. VAT · Cancel with 30 days notice</p>
+                </div>
+              )}
+
+              {/* Once-off hosting options */}
+              {form.billingType === "once_off" && (
+                <div className="space-y-3">
+                  <Label>Add hosting? *</Label>
+                  <p className="text-xs text-gray-400 -mt-1">Your website build cost will be quoted after we review your brief. Choose hosting below.</p>
+                  {HOSTING_OPTIONS.map((opt) => (
+                    <RadioCard key={opt.id} selected={form.hostingPlan === opt.id} onClick={() => setForm({ ...form, hostingPlan: opt.id })}>
+                      <div className="flex items-center justify-between pr-6">
+                        <div>
+                          <div className="font-bold text-brand-navy text-sm">{opt.label}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
+                        </div>
+                        {opt.price !== null && (
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <div className="text-base font-extrabold text-brand-navy">R{opt.price}</div>
+                            <div className="text-xs text-gray-400">/month</div>
+                          </div>
+                        )}
+                      </div>
+                    </RadioCard>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── STEP: Business ─────────────────────────────────────────────── */}
+          {currentLabel === "Business" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-brand-navy">Tell us about your business</h1>
@@ -256,22 +389,14 @@ export default function OnboardingForm({
 
               <div className="space-y-2">
                 <Label>Business name *</Label>
-                <Input
-                  value={form.businessName}
-                  onChange={(e) => setForm({ ...form, businessName: e.target.value })}
-                  placeholder="e.g. Naidoo Beauty Studio"
-                />
+                <Input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} placeholder="e.g. Naidoo Beauty Studio" />
               </div>
 
               <div className="space-y-2">
                 <Label>What industry are you in? *</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {BUSINESS_TYPES.map((type) => (
-                    <ToggleChip
-                      key={type}
-                      selected={form.businessType === type}
-                      onClick={() => setForm({ ...form, businessType: type })}
-                    >
+                    <ToggleChip key={type} selected={form.businessType === type} onClick={() => setForm({ ...form, businessType: type })}>
                       {type}
                     </ToggleChip>
                   ))}
@@ -284,15 +409,9 @@ export default function OnboardingForm({
                   {WEBSITE_TYPES.map((type) => {
                     const Icon = type.icon;
                     return (
-                      <RadioCard
-                        key={type.id}
-                        selected={form.websiteType === type.id}
-                        onClick={() => setForm({ ...form, websiteType: type.id })}
-                      >
+                      <RadioCard key={type.id} selected={form.websiteType === type.id} onClick={() => setForm({ ...form, websiteType: type.id })}>
                         <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            form.websiteType === type.id ? "bg-brand-green/15" : "bg-gray-100"
-                          }`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${form.websiteType === type.id ? "bg-brand-green/15" : "bg-gray-100"}`}>
                             <Icon className={`h-4 w-4 ${form.websiteType === type.id ? "text-brand-green" : "text-gray-500"}`} />
                           </div>
                           <div>
@@ -308,8 +427,8 @@ export default function OnboardingForm({
             </div>
           )}
 
-          {/* Step 1: Goals & features */}
-          {step === 1 && (
+          {/* ── STEP: Goals ────────────────────────────────────────────────── */}
+          {currentLabel === "Goals" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-brand-navy">What are your goals?</h1>
@@ -320,13 +439,7 @@ export default function OnboardingForm({
                 <Label>Main goals for this website *</Label>
                 <div className="flex flex-wrap gap-2">
                   {GOALS.map((goal) => (
-                    <ToggleChip
-                      key={goal}
-                      selected={form.goals.includes(goal)}
-                      onClick={() => toggleArray("goals", goal)}
-                    >
-                      {goal}
-                    </ToggleChip>
+                    <ToggleChip key={goal} selected={form.goals.includes(goal)} onClick={() => toggleArray("goals", goal)}>{goal}</ToggleChip>
                   ))}
                 </div>
               </div>
@@ -335,13 +448,7 @@ export default function OnboardingForm({
                 <Label>Features you need <span className="text-gray-400 font-normal">(optional)</span></Label>
                 <div className="grid grid-cols-2 gap-2">
                   {FEATURES.map((feature) => (
-                    <ToggleChip
-                      key={feature.id}
-                      selected={form.features.includes(feature.id)}
-                      onClick={() => toggleArray("features", feature.id)}
-                    >
-                      {feature.label}
-                    </ToggleChip>
+                    <ToggleChip key={feature.id} selected={form.features.includes(feature.id)} onClick={() => toggleArray("features", feature.id)}>{feature.label}</ToggleChip>
                   ))}
                 </div>
               </div>
@@ -350,21 +457,15 @@ export default function OnboardingForm({
                 <Label>How many pages do you need? <span className="text-gray-400 font-normal">(optional)</span></Label>
                 <div className="flex flex-wrap gap-2">
                   {PAGE_COUNTS.map((pc) => (
-                    <ToggleChip
-                      key={pc.id}
-                      selected={form.pageCount === pc.id}
-                      onClick={() => setForm({ ...form, pageCount: pc.id })}
-                    >
-                      {pc.label}
-                    </ToggleChip>
+                    <ToggleChip key={pc.id} selected={form.pageCount === pc.id} onClick={() => setForm({ ...form, pageCount: pc.id })}>{pc.label}</ToggleChip>
                   ))}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 2: Style & readiness */}
-          {step === 2 && (
+          {/* ── STEP: Style ────────────────────────────────────────────────── */}
+          {currentLabel === "Style" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-brand-navy">Style & readiness</h1>
@@ -375,11 +476,7 @@ export default function OnboardingForm({
                 <Label>What style fits your brand? *</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {STYLE_OPTIONS.map((style) => (
-                    <RadioCard
-                      key={style.id}
-                      selected={form.stylePreference === style.id}
-                      onClick={() => setForm({ ...form, stylePreference: style.id })}
-                    >
+                    <RadioCard key={style.id} selected={form.stylePreference === style.id} onClick={() => setForm({ ...form, stylePreference: style.id })}>
                       <div className="font-semibold text-brand-navy text-sm pr-6">{style.label}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{style.desc}</div>
                     </RadioCard>
@@ -391,11 +488,7 @@ export default function OnboardingForm({
                 <Label>Domain status *</Label>
                 <div className="space-y-2">
                   {DOMAIN_STATUS.map((d) => (
-                    <RadioCard
-                      key={d.id}
-                      selected={form.domainStatus === d.id}
-                      onClick={() => setForm({ ...form, domainStatus: d.id })}
-                    >
+                    <RadioCard key={d.id} selected={form.domainStatus === d.id} onClick={() => setForm({ ...form, domainStatus: d.id })}>
                       <span className="text-sm font-medium text-brand-navy pr-6">{d.label}</span>
                     </RadioCard>
                   ))}
@@ -406,11 +499,7 @@ export default function OnboardingForm({
                 <Label>Content readiness *</Label>
                 <div className="space-y-2">
                   {CONTENT_STATUS.map((c) => (
-                    <RadioCard
-                      key={c.id}
-                      selected={form.contentStatus === c.id}
-                      onClick={() => setForm({ ...form, contentStatus: c.id })}
-                    >
+                    <RadioCard key={c.id} selected={form.contentStatus === c.id} onClick={() => setForm({ ...form, contentStatus: c.id })}>
                       <span className="text-sm font-medium text-brand-navy pr-6">{c.label}</span>
                     </RadioCard>
                   ))}
@@ -419,19 +508,14 @@ export default function OnboardingForm({
 
               <div className="space-y-2">
                 <Label>Anything else you&apos;d like us to know? <span className="text-gray-400 font-normal">(optional)</span></Label>
-                <Textarea
-                  rows={3}
-                  value={form.additionalNotes}
-                  onChange={(e) => setForm({ ...form, additionalNotes: e.target.value })}
-                  placeholder="Links to websites you like, colour preferences, specific requirements..."
-                  className="resize-none"
-                />
+                <Textarea rows={3} value={form.additionalNotes} onChange={(e) => setForm({ ...form, additionalNotes: e.target.value })}
+                  placeholder="Links to websites you like, colour preferences, specific requirements..." className="resize-none" />
               </div>
             </div>
           )}
 
-          {/* Step 3: Review */}
-          {step === 3 && (
+          {/* ── STEP: Review ───────────────────────────────────────────────── */}
+          {currentLabel === "Review" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-brand-navy">Ready to submit?</h1>
@@ -440,6 +524,15 @@ export default function OnboardingForm({
 
               <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100">
                 {[
+                  needsPlanStep && form.billingType === "retainer" && {
+                    label: "Plan",
+                    value: `Monthly Retainer — ${Object.values(PACKAGES).find((p) => p.id === form.selectedPlan)?.name ?? form.selectedPlan} (R${Object.values(PACKAGES).find((p) => p.id === form.selectedPlan)?.price ?? "—"}/mo)`,
+                  },
+                  needsPlanStep && form.billingType === "once_off" && {
+                    label: "Plan",
+                    value: `Once-Off Build — ${HOSTING_OPTIONS.find((h) => h.id === form.hostingPlan)?.label ?? ""}`,
+                  },
+                  !needsPlanStep && packageName && { label: "Plan", value: packageName },
                   { label: "Business", value: `${form.businessName} — ${form.businessType}` },
                   { label: "Website type", value: WEBSITE_TYPES.find((t) => t.id === form.websiteType)?.label ?? form.websiteType },
                   { label: "Goals", value: form.goals.join(", ") || "—" },
@@ -448,17 +541,23 @@ export default function OnboardingForm({
                   { label: "Style", value: STYLE_OPTIONS.find((s) => s.id === form.stylePreference)?.label ?? "—" },
                   { label: "Domain", value: DOMAIN_STATUS.find((d) => d.id === form.domainStatus)?.label ?? "—" },
                   { label: "Content", value: CONTENT_STATUS.find((c) => c.id === form.contentStatus)?.label ?? "—" },
-                  ...(form.additionalNotes ? [{ label: "Notes", value: form.additionalNotes }] : []),
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex gap-4 px-5 py-3">
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-28 flex-shrink-0 mt-0.5">{label}</span>
-                    <span className="text-sm text-brand-navy">{value}</span>
-                  </div>
-                ))}
+                  form.additionalNotes && { label: "Notes", value: form.additionalNotes },
+                ].filter(Boolean).map((row) => {
+                  const r = row as { label: string; value: string };
+                  return (
+                    <div key={r.label} className="flex gap-4 px-5 py-3">
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-28 flex-shrink-0 mt-0.5">{r.label}</span>
+                      <span className="text-sm text-brand-navy">{r.value}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="rounded-xl bg-brand-green/5 border border-brand-green/20 p-4 text-sm text-gray-600">
-                After submitting, you can upload your logo and brand files in <strong>Dashboard → Files</strong>. Our team will review your brief and start work within 1 business day.
+                After submitting, upload your logo and brand files in <strong>Dashboard → Files</strong>.
+                {needsPlanStep && form.billingType === "retainer" && " Our team will send your payment link within 1 business day."}
+                {needsPlanStep && form.billingType === "once_off" && " We&apos;ll quote your build cost and set up hosting within 1 business day."}
+                {!needsPlanStep && " Our team will review your brief and start within 1 business day."}
               </div>
 
               {error && (
