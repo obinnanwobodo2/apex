@@ -42,14 +42,28 @@ export default function AboutPage() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 px-4 bg-brand-navy">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {STATS.map((s) => (
-            <div key={s.label}>
-              <div className="text-3xl font-extrabold text-brand-green">{s.value}</div>
-              <div className="text-sm text-gray-300 mt-1">{s.label}</div>
-            </div>
-          ))}
+      <section className="py-20 px-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0d1526 0%, #1b2340 50%, #0f2a1e 100%)" }}>
+        {/* Subtle grid overlay */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#2dc5a2 1px, transparent 1px), linear-gradient(to right, #2dc5a2 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        {/* Glow accents */}
+        <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #2dc5a2, transparent)" }} />
+        <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #2dc5a2, transparent)" }} />
+
+        <div className="relative max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {STATS.map((s, i) => (
+              <div
+                key={s.label}
+                className="relative flex flex-col items-center text-center px-4 py-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm"
+                style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}
+              >
+                {/* Top accent line */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 rounded-full" style={{ background: "linear-gradient(90deg, transparent, #2dc5a2, transparent)" }} />
+                <div className="text-3xl sm:text-4xl font-extrabold mb-2" style={{ color: "#2dc5a2" }}>{s.value}</div>
+                <div className="text-xs sm:text-sm font-medium text-white/60 uppercase tracking-wider leading-snug">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
