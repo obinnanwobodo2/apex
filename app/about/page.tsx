@@ -51,7 +51,7 @@ export default function AboutPage() {
 
         <div className="relative max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {STATS.map((s, i) => (
+            {STATS.map((s) => (
               <div
                 key={s.label}
                 className="relative flex flex-col items-center text-center px-4 py-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm"
