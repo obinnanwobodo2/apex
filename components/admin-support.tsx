@@ -18,6 +18,13 @@ interface Ticket {
   resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  replies?: Array<{
+    id: string;
+    senderRole: string;
+    senderName: string;
+    message: string;
+    createdAt: string;
+  }>;
   profile: {
     fullName: string | null;
     companyName: string | null;
@@ -43,7 +50,7 @@ export default function AdminSupportClient({ initialTickets }: { initialTickets:
     const ticket = tickets.find((t) => t.id === id);
     if (!ticket) return;
     setActiveId(id);
-    setReply(ticket.response ?? "");
+    setReply(ticket.response ?? ticket.replies?.[ticket.replies.length - 1]?.message ?? "");
     setStatus(ticket.status);
   }
 
@@ -51,6 +58,15 @@ export default function AdminSupportClient({ initialTickets }: { initialTickets:
     if (!active) return;
     setSaving(true);
     try {
+      const previousReply = active.replies?.[active.replies.length - 1]?.message ?? active.response ?? "";
+      if (reply.trim() && reply.trim() !== previousReply.trim()) {
+        await fetch("/api/support/replies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticketId: active.id, message: reply.trim() }),
+        });
+      }
+
       const res = await fetch(`/api/admin/support/${active.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -149,6 +165,18 @@ export default function AdminSupportClient({ initialTickets }: { initialTickets:
                     <p className="text-sm font-semibold text-brand-navy mb-2">{active.subject}</p>
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{active.message}</p>
                   </div>
+                  {active.replies && active.replies.length > 0 && (
+                    <div className="space-y-2">
+                      {active.replies.map((entry) => (
+                        <div key={entry.id} className="rounded-lg border border-gray-100 bg-white p-3">
+                          <p className="text-[11px] font-semibold text-gray-500 mb-1">
+                            {entry.senderName} · {new Date(entry.createdAt).toLocaleString("en-ZA")}
+                          </p>
+                          <p className="text-sm text-gray-700">{entry.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label className="text-sm">
                       <span className="text-gray-500">Status</span>

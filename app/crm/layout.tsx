@@ -5,6 +5,7 @@ import CrmShell from "@/components/crm-shell";
 import Link from "next/link";
 import { Lock, ArrowRight } from "lucide-react";
 import { CRM_PACKAGES, formatCurrency } from "@/lib/utils";
+import PaystackSubscribeButton from "@/components/paystack-subscribe-button";
 
 export default async function CrmLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -16,7 +17,7 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
       userId,
       paid: true,
       status: "active",
-      package: { in: ["crm-starter", "crm-pro"] },
+      package: { in: ["crm-pro", "crm-starter"] },
     },
   });
 
@@ -59,22 +60,20 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
                   {formatCurrency(plan.price)}<span className="text-sm font-normal text-gray-400">/month</span>
                 </div>
                 <ul className="mt-4 space-y-1.5">
-                  {plan.features.slice(0, 4).map((feature) => (
+                  {plan.features.slice(0, 5).map((feature) => (
                     <li key={feature} className="text-xs text-gray-600">• {feature}</li>
                   ))}
                 </ul>
-                <Link
-                  href={`/checkout?package=${plan.id}`}
+                <PaystackSubscribeButton
+                  packageId={plan.id}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#1b2340] to-[#2dc5a2] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
-                  Continue to Checkout
+                  Subscribe with Paystack
                   <ArrowRight className="h-4 w-4" />
-                </Link>
-                {plan.id === "crm-starter" && (
-                  <p className="mt-2 text-[11px] text-gray-500">
-                    Launch offer: {formatCurrency(plan.price)}/month after trial.
-                  </p>
-                )}
+                </PaystackSubscribeButton>
+                <p className="mt-2 text-[11px] text-gray-500">
+                  Excl. VAT · Paystack billing · Cancel anytime
+                </p>
               </div>
             ))}
           </div>

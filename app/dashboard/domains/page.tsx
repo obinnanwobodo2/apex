@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
   Search, Globe, CheckCircle2, XCircle, AlertCircle,
   ShoppingCart, RefreshCw, ArrowRight, Loader2, ShieldCheck,
@@ -39,6 +40,26 @@ interface DomainOrder {
   years: number;
 }
 
+interface DomainEntry {
+  id: string;
+  domainName: string;
+  registeredAt: string;
+  expiresAt: string;
+  status: string;
+}
+
+interface DomainRequestItem {
+  id: string;
+  domainName: string;
+  extension: string;
+  paymentType: "once-off" | "monthly";
+  status: string;
+  paymentStatus: string;
+  notes: string | null;
+  checkedNote: string | null;
+  createdAt: string;
+}
+
 const POPULAR_TLDS = [".co.za", ".com", ".net", ".org", ".io", ".dev"];
 const PRICES: Record<string, string> = {
   "co.za": "R180/yr",
@@ -63,6 +84,8 @@ function humanStatus(order: DomainOrder) {
 }
 
 export default function DomainsPage() {
+  const { isLoaded, userId } = useAuth();
+  const isSignedIn = Boolean(userId);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DomainResult | null>(null);
@@ -71,26 +94,57 @@ export default function DomainsPage() {
   const [registering, setRegistering] = useState(false);
   const [checked, setChecked] = useState<DomainResult[]>([]);
   const [orders, setOrders] = useState<DomainOrder[]>([]);
+  const [domains, setDomains] = useState<DomainEntry[]>([]);
+  const [requests, setRequests] = useState<DomainRequestItem[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
-  const liveDomain = orders.find((order) => humanStatus(order) === "Live")?.domain ?? orders[0]?.domain ?? null;
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [requestForm, setRequestForm] = useState({
+    domainName: "",
+    extension: ".co.za",
+    paymentType: "once-off" as "once-off" | "monthly",
+    notes: "",
+  });
 
-  async function loadOrders() {
+  const liveDomain = domains[0]?.domainName
+    ?? orders.find((order) => humanStatus(order) === "Live")?.domain
+    ?? orders[0]?.domain
+    ?? null;
+
+  const loadOrders = useCallback(async () => {
+    if (!isSignedIn) {
+      setOrders([]);
+      setDomains([]);
+      setRequests([]);
+      setOrdersLoading(false);
+      return;
+    }
+
     setOrdersLoading(true);
     try {
-      const res = await fetch("/api/domains/register", { cache: "no-store" });
-      const data = await res.json().catch(() => []);
-      if (!res.ok) throw new Error("Failed to load domains");
-      setOrders(Array.isArray(data) ? data : []);
+      const [orderRes, domainRes, requestRes] = await Promise.all([
+        fetch("/api/domains/register", { cache: "no-store" }),
+        fetch("/api/domains", { cache: "no-store" }),
+        fetch("/api/domains/request", { cache: "no-store" }),
+      ]);
+
+      const orderData = await orderRes.json().catch(() => []);
+      const domainData = await domainRes.json().catch(() => []);
+      const requestData = await requestRes.json().catch(() => []);
+
+      if (orderRes.ok) setOrders(Array.isArray(orderData) ? orderData : []);
+      if (domainRes.ok) setDomains(Array.isArray(domainData) ? domainData : []);
+      if (requestRes.ok) setRequests(Array.isArray(requestData) ? requestData : []);
     } catch {
       // Silent; user can still use search/purchase
     } finally {
       setOrdersLoading(false);
     }
-  }
+  }, [isSignedIn]);
 
   useEffect(() => {
+    if (!isLoaded) return;
     void loadOrders();
-  }, []);
+  }, [isLoaded, loadOrders]);
 
   async function checkDomain(domain?: string) {
     const d = (domain ?? query).trim().toLowerCase();
@@ -140,6 +194,74 @@ export default function DomainsPage() {
       void loadOrders();
     }
   }
+
+  async function submitDomainRequest(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isSignedIn) {
+      setActionMsg("Sign in to request a domain.");
+      return;
+    }
+
+    const cleanDomainName = requestForm.domainName.trim().toLowerCase().replace(/\.[a-z.]+$/i, "");
+    if (!cleanDomainName) {
+      setActionMsg("Please enter a domain name.");
+      return;
+    }
+
+    setRequestLoading(true);
+    setActionMsg("");
+    try {
+      const reqRes = await fetch("/api/domains/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          domainName: cleanDomainName,
+          extension: requestForm.extension,
+          paymentType: requestForm.paymentType,
+          notes: requestForm.notes,
+        }),
+      });
+      const reqData = await reqRes.json().catch(() => null);
+      if (!reqRes.ok) throw new Error(reqData?.error || "Failed to submit domain request.");
+
+      const created = reqData as DomainRequestItem;
+      setRequests((prev) => [created, ...prev]);
+
+      if (created.paymentType === "once-off") {
+        const payRes = await fetch("/api/paystack/domain-charge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: created.id }),
+        });
+        const payData = await payRes.json().catch(() => null);
+        if (!payRes.ok) throw new Error(payData?.error || "Unable to open payment checkout.");
+        if (payData?.authorization_url) {
+          window.location.href = payData.authorization_url;
+          return;
+        }
+      }
+
+      setActionMsg(
+        created.paymentType === "monthly"
+          ? "Domain request submitted. We will add it to your next monthly invoice."
+          : "Domain request submitted successfully."
+      );
+      setRequestForm((prev) => ({ ...prev, domainName: "", notes: "" }));
+      void loadOrders();
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : "Failed to submit domain request.");
+    } finally {
+      setRequestLoading(false);
+    }
+  }
+
+  const STATUS_BADGES: Record<string, string> = {
+    pending: "text-gray-500 bg-gray-100",
+    checked: "text-brand-navy bg-brand-navy/5",
+    issued: "text-brand-green bg-brand-green/10",
+    unavailable: "text-red-600 bg-red-50",
+    paid: "text-brand-green bg-brand-green/10",
+  };
 
   return (
     <div className="space-y-6">
@@ -198,6 +320,118 @@ export default function DomainsPage() {
 
         {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
       </div>
+
+      <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <h3 className="font-semibold text-brand-navy text-sm mb-4">Request a domain</h3>
+        {!isLoaded ? (
+          <p className="text-sm text-gray-400">Loading account status...</p>
+        ) : !isSignedIn ? (
+          <p className="text-sm text-gray-400">Sign in to view your domains and submit a domain request.</p>
+        ) : (
+          <form onSubmit={submitDomainRequest} className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="text-sm">
+                <span className="text-xs font-medium text-gray-500 block mb-1.5">Domain name</span>
+                <input
+                  value={requestForm.domainName}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, domainName: e.target.value }))}
+                  placeholder="e.g. apexvisual"
+                  className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-brand-navy"
+                />
+              </label>
+              <label className="text-sm">
+                <span className="text-xs font-medium text-gray-500 block mb-1.5">Extension</span>
+                <select
+                  value={requestForm.extension}
+                  onChange={(e) => setRequestForm((prev) => ({ ...prev, extension: e.target.value }))}
+                  className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-brand-navy"
+                >
+                  {POPULAR_TLDS.map((ext) => (
+                    <option key={ext} value={ext}>{ext}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div>
+              <span className="text-xs font-medium text-gray-500 block mb-1.5">Payment type</span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: "once-off", label: "Once-off payment" },
+                  { id: "monthly", label: "Add to monthly plan" },
+                ].map((type) => (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setRequestForm((prev) => ({ ...prev, paymentType: type.id as "once-off" | "monthly" }))}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      requestForm.paymentType === type.id
+                        ? "border-brand-green text-brand-green bg-brand-green/5"
+                        : "border-gray-200 text-gray-500 hover:border-gray-300"
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <label className="text-sm block">
+              <span className="text-xs font-medium text-gray-500 block mb-1.5">Notes (optional)</span>
+              <textarea
+                rows={3}
+                value={requestForm.notes}
+                onChange={(e) => setRequestForm((prev) => ({ ...prev, notes: e.target.value }))}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-brand-navy resize-none"
+                placeholder="Any registrar preference or extra details..."
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={requestLoading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
+            >
+              {requestLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+              {requestLoading ? "Submitting..." : "Submit Domain Request"}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {isSignedIn && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="font-semibold text-brand-navy text-sm mb-3">Submitted Requests</h3>
+          {requests.length === 0 ? (
+            <p className="text-sm text-gray-400">No domain requests submitted yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {requests.map((request) => (
+                <div key={request.id} className="flex items-start justify-between py-2 border-b border-gray-200 last:border-0 gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-brand-navy">
+                      {request.domainName}{request.extension}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {request.paymentType === "monthly" ? "Monthly add-on" : "Once-off payment"} · {new Date(request.createdAt).toLocaleDateString("en-ZA")}
+                    </p>
+                    {request.checkedNote && <p className="text-xs text-gray-500 mt-1">{request.checkedNote}</p>}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${STATUS_BADGES[request.status] ?? "text-gray-500 bg-gray-100"}`}>
+                      {request.status}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${STATUS_BADGES[request.paymentStatus] ?? "text-gray-500 bg-gray-100"}`}>
+                      {request.paymentStatus.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {result && (
         <div className={`rounded-2xl border p-5 transition-all ${
@@ -273,8 +507,32 @@ export default function DomainsPage() {
 
       <div className="bg-white border border-gray-200 rounded-2xl p-5">
         <h3 className="font-semibold text-brand-navy text-sm mb-4">Your Domains</h3>
-        {ordersLoading ? (
-          <p className="text-sm text-gray-400">No domains registered yet.</p>
+        {!isLoaded ? (
+          <p className="text-sm text-gray-400">Loading account status...</p>
+        ) : !isSignedIn ? (
+          <p className="text-sm text-gray-400">Sign in to view your domains.</p>
+        ) : ordersLoading ? (
+          <p className="text-sm text-gray-400">Loading your domains...</p>
+        ) : domains.length > 0 ? (
+          <div className="space-y-2">
+            {domains.map((domain) => (
+              <div key={domain.id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0 gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-brand-navy">{domain.domainName}</p>
+                  <p className="text-xs text-gray-500">
+                    Registered {new Date(domain.registeredAt).toLocaleDateString("en-ZA")}
+                    {" · "}
+                    Expires {new Date(domain.expiresAt).toLocaleDateString("en-ZA")}
+                  </p>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${
+                  domain.status === "active" ? "text-brand-green bg-brand-green/10" : "text-gray-500 bg-gray-100"
+                }`}>
+                  {domain.status}
+                </span>
+              </div>
+            ))}
+          </div>
         ) : orders.length === 0 ? (
           <p className="text-sm text-gray-400">No domains registered yet.</p>
         ) : (

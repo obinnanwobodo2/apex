@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   Globe, TrendingUp, Calendar, ArrowUpRight,
@@ -9,14 +10,18 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, ALL_PACKAGES, type PackageId } from "@/lib/utils";
+import { formatCurrency, ALL_PACKAGES, PACKAGES, type PackageId } from "@/lib/utils";
 import PlansFlow from "@/components/plans-flow";
+import { getPusherClient } from "@/lib/pusher-client";
+import { getClientChannelName } from "@/lib/realtime";
 
 export interface SerializedSubscription {
   id: string;
   package: string;
   amount: number;
   amountPaid: number;
+  hostingAmount?: number;
+  projectType?: string | null;
   status: string;
   paid: boolean;
   cancelledAt: string | null;
@@ -57,14 +62,16 @@ const STAGE_COLORS: Record<string, string> = {
 
 export default function DashboardOverview({
   subscriptions,
-  projects,
+  projects: initialProjects,
   initialPlanId = null,
 }: {
   subscriptions: SerializedSubscription[];
   projects: SerializedProject[];
   initialPlanId?: PackageId | null;
 }) {
+  const { userId } = useAuth();
   const [flowOpen, setFlowOpen] = useState(false);
+  const [projects, setProjects] = useState<SerializedProject[]>(initialProjects);
   const didAutoOpen = useRef(false);
 
   useEffect(() => {
@@ -73,14 +80,43 @@ export default function DashboardOverview({
     setFlowOpen(true);
   }, [initialPlanId]);
 
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(getClientChannelName(userId));
+    const onNotification = async (payload: { type?: string }) => {
+      if (payload?.type !== "project_update") return;
+      const res = await fetch("/api/projects", { cache: "no-store" });
+      const data = await res.json().catch(() => []);
+      if (!res.ok) return;
+      setProjects(Array.isArray(data) ? data : []);
+    };
+
+    channel.bind("new-notification", onNotification);
+    return () => {
+      channel.unbind("new-notification", onNotification);
+      pusher.unsubscribe(getClientChannelName(userId));
+    };
+  }, [userId]);
+
   const activeSub = subscriptions.find((s) => s.status === "active" && s.paid);
   const pkg = activeSub ? ALL_PACKAGES[activeSub.package as keyof typeof ALL_PACKAGES] : null;
+  const hasWebsitePackage = activeSub ? activeSub.package in PACKAGES : false;
+  const isCrmPlan = activeSub ? activeSub.package.startsWith("crm-") : false;
+  const isDomainPlan = activeSub?.projectType === "domain_registration" || activeSub?.package === "domain-registration";
+  const hostingRecurring = activeSub?.hostingAmount ?? 0;
   const activeProject = projects[0] ?? null;
   const projectStage = activeProject ? (STAGE_MAP[activeProject.status] ?? "Under Review") : null;
 
   // Onboarding checklist
   const checklist = [
-    { label: "Choose a plan", done: !!activeSub, href: "#" as const },
+    { label: "Choose a website package", done: !!activeSub, href: "#" as const },
     { label: "Submit your project brief", done: projects.length > 0, href: "/dashboard/projects" as const },
     { label: "Upload your logo and brand files", done: false, href: "/dashboard/files" as const },
     { label: "Review your website preview", done: activeProject?.status === "review" || activeProject?.status === "completed", href: "/dashboard/projects" as const },
@@ -92,7 +128,15 @@ export default function DashboardOverview({
     {
       label: "Active Plan",
       value: pkg?.name ?? "No active plan",
-      sub: activeSub ? `${formatCurrency(activeSub.amount)}/mo` : "Choose a plan to get started",
+      sub: activeSub
+        ? isCrmPlan
+          ? `${formatCurrency(activeSub.amount)}/mo CRM recurring`
+          : hasWebsitePackage
+            ? `Once-off build paid${hostingRecurring > 0 ? ` · Hosting ${formatCurrency(hostingRecurring)}/mo` : ""}`
+            : isDomainPlan
+              ? `${formatCurrency(activeSub.amount)}/year`
+              : "Active billing item"
+        : "Choose a package to get started",
       icon: <Zap className="h-5 w-5" />,
       color: "text-brand-green",
       bg: "bg-brand-green/10",
@@ -102,7 +146,15 @@ export default function DashboardOverview({
       value: activeSub?.nextBillingDate
         ? new Date(activeSub.nextBillingDate).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })
         : "—",
-      sub: activeSub ? "Auto-renews monthly" : "No billing date yet",
+      sub: activeSub
+        ? isCrmPlan
+          ? "CRM auto-renews monthly"
+          : isDomainPlan
+            ? "Domain renews yearly"
+            : hostingRecurring > 0
+              ? "Hosting auto-renews monthly"
+              : "No recurring billing"
+        : "No billing date yet",
       icon: <Calendar className="h-5 w-5" />,
       color: "text-brand-navy",
       bg: "bg-brand-navy/5",
@@ -228,7 +280,7 @@ export default function DashboardOverview({
                   <p className="text-gray-400 text-sm mb-5 max-w-xs">
                     Ready to start?{" "}
                     <button onClick={() => setFlowOpen(true)} className="text-brand-green hover:underline font-medium">
-                      Choose a plan →
+                      Choose a package →
                     </button>
                   </p>
                 </div>
@@ -244,24 +296,14 @@ export default function DashboardOverview({
               <CardTitle className="text-brand-navy text-base">Quick actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {([
-                { label: "Message us", icon: <MessageCircle className="h-4 w-4" />, href: "/dashboard/messages" },
-                { label: "Upload files", icon: <Upload className="h-4 w-4" />, href: "/dashboard/files" },
-                { label: "View invoices", icon: <CreditCard className="h-4 w-4" />, href: "/dashboard/billing" },
-                { label: activeSub ? "Upgrade plan" : "Choose a plan", icon: <Zap className="h-4 w-4" />, action: true },
-                { label: "My project", icon: <FolderKanban className="h-4 w-4" />, href: "/dashboard/projects" },
-              ] as Array<{ label: string; icon: React.ReactNode; href?: string; action?: boolean }>).map((item) =>
-                item.action ? (
-                  <button key={item.label} onClick={() => setFlowOpen(true)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-600 hover:text-brand-navy group text-left">
-                    <span className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-brand-green/10 group-hover:text-brand-green flex items-center justify-center transition-colors">
-                      {item.icon}
-                    </span>
-                    {item.label}
-                    <ArrowUpRight className="h-3.5 w-3.5 ml-auto text-gray-300 group-hover:text-brand-green" />
-                  </button>
-                ) : (
-                  <Link key={item.label} href={item.href!}
+                {([
+                  { label: "Message us", icon: <MessageCircle className="h-4 w-4" />, href: "/dashboard/messages" },
+                  { label: "Upload files", icon: <Upload className="h-4 w-4" />, href: "/dashboard/files" },
+                  { label: "View invoices", icon: <CreditCard className="h-4 w-4" />, href: "/dashboard/billing" },
+                  { label: "CRM — manage leads", icon: <Zap className="h-4 w-4" />, href: "/crm" },
+                  { label: "My project", icon: <FolderKanban className="h-4 w-4" />, href: "/dashboard/projects" },
+                ] as Array<{ label: string; icon: React.ReactNode; href: string }>).map((item) => (
+                  <Link key={item.label} href={item.href}
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-600 hover:text-brand-navy group">
                     <span className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-brand-green/10 group-hover:text-brand-green flex items-center justify-center transition-colors">
                       {item.icon}
@@ -269,8 +311,7 @@ export default function DashboardOverview({
                     {item.label}
                     <ArrowUpRight className="h-3.5 w-3.5 ml-auto text-gray-300 group-hover:text-brand-green" />
                   </Link>
-                )
-              )}
+                ))}
             </CardContent>
           </Card>
         </div>

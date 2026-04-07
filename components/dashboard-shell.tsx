@@ -10,7 +10,9 @@ import {
   MessageCircle, FolderKanban, X, Search, FileText, Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useAuth, useUser, useClerk } from "@clerk/nextjs";
+import { getPusherClient } from "@/lib/pusher-client";
+import { getClientChannelName } from "@/lib/realtime";
 
 const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
 const INACTIVITY_WARNING_MS = 60 * 1000;
@@ -56,9 +58,18 @@ const TOUR_STEPS = [
   },
 ];
 
+interface DashboardNotification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { userId } = useAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
   const isGuestPreview = !user;
@@ -67,6 +78,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
+  const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [timeoutWarningOpen, setTimeoutWarningOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(Math.floor(INACTIVITY_WARNING_MS / 1000));
   const [lastLogin, setLastLogin] = useState<string | null>(null);
@@ -161,6 +175,72 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       // no-op in private/blocked storage contexts
     }
   }, [user, pathname]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!userId) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
+    setNotificationsLoading(true);
+    try {
+      const res = await fetch("/api/notifications", { cache: "no-store" });
+      const data = await res.json().catch(() => []);
+      if (!res.ok) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
+      const rows = Array.isArray(data) ? (data as DashboardNotification[]) : [];
+      setNotifications(rows);
+      setUnreadCount(rows.filter((item) => !item.read).length);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [userId]);
+
+  const markNotificationsRead = useCallback(async () => {
+    if (!userId) return;
+    if (notifications.every((item) => item.read)) {
+      setUnreadCount(0);
+      return;
+    }
+    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+    setUnreadCount(0);
+    await fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+  }, [notifications, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    void loadNotifications();
+  }, [loadNotifications, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(getClientChannelName(userId));
+    const onNotification = (payload: DashboardNotification) => {
+      if (!payload?.id) return;
+      setNotifications((prev) => {
+        if (prev.some((item) => item.id === payload.id)) return prev;
+        return [payload, ...prev].slice(0, 50);
+      });
+      setUnreadCount((count) => count + (payload.read ? 0 : 1));
+    };
+    channel.bind("new-notification", onNotification);
+
+    return () => {
+      channel.unbind("new-notification", onNotification);
+      pusher.unsubscribe(getClientChannelName(userId));
+    };
+  }, [userId]);
 
   function closeTour(markCompleted: boolean) {
     setTourOpen(false);
@@ -301,28 +381,59 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </button>
 
               <div className="relative" data-notif>
-                <button onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
+                <button
+                  onClick={() => {
+                    const nextOpen = !notifOpen;
+                    setNotifOpen(nextOpen);
+                    setProfileOpen(false);
+                    if (nextOpen) void markNotificationsRead();
+                  }}
                   className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
                   <Bell className="h-4 w-4" />
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-green rounded-full" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-brand-green text-[10px] leading-4 text-white text-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </button>
                 {notifOpen && (
                   <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl z-50">
                     <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-900">Notifications</span>
-                      <span className="text-[10px] text-brand-green">1 new</span>
+                      <span className="text-[10px] text-brand-green">{unreadCount} new</span>
                     </div>
-                    <div className="p-2">
-                      <div className="flex gap-3 p-2.5 rounded-lg bg-brand-green/5 border border-brand-green/20">
-                        <div className="w-1.5 h-1.5 rounded-full bg-brand-green mt-1.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-gray-900 font-medium">Welcome to Apex Visual</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Your dashboard is ready.</p>
-                        </div>
-                      </div>
+                    <div className="p-2 space-y-2 max-h-72 overflow-y-auto">
+                      {notificationsLoading ? (
+                        <p className="text-xs text-gray-400 px-2 py-2">Loading notifications...</p>
+                      ) : notifications.length === 0 ? (
+                        <p className="text-xs text-gray-400 px-2 py-2">No notifications yet.</p>
+                      ) : (
+                        notifications.slice(0, 8).map((item) => (
+                          <div
+                            key={item.id}
+                            className={`flex gap-3 p-2.5 rounded-lg border ${
+                              item.read ? "bg-white border-gray-100" : "bg-brand-green/5 border-brand-green/20"
+                            }`}
+                          >
+                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${item.read ? "bg-gray-300" : "bg-brand-green"}`} />
+                            <div>
+                              <p className="text-sm text-gray-900 font-medium capitalize">{item.type.replace("_", " ")}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">{item.message}</p>
+                              <p className="text-[10px] text-gray-400 mt-1">
+                                {new Date(item.createdAt).toLocaleString("en-ZA", {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                     <div className="px-4 py-2.5 border-t border-gray-200">
-                      <button className="text-xs text-brand-green hover:underline">View all</button>
+                      <button className="text-xs text-brand-green hover:underline" onClick={() => void loadNotifications()}>Refresh</button>
                     </div>
                   </div>
                 )}

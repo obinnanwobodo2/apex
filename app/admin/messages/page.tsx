@@ -1,7 +1,11 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import AdminMessagesClient from "@/components/admin-messages";
 
 export default async function AdminMessagesPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/login?redirect_url=/admin/messages");
 
   // Fetch all projects with their messages and client profile
   const projects = await prisma.project.findMany({
@@ -14,6 +18,7 @@ export default async function AdminMessagesPage() {
 
   const serialized = projects.map((p) => ({
     id: p.id,
+    clientId: p.userId,
     title: p.title,
     status: p.status,
     clientName:

@@ -12,6 +12,11 @@ export default async function SupportPage() {
   const tickets = userId
     ? await prisma.supportTicket.findMany({
       where: { userId },
+      include: {
+        replies: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
       orderBy: { createdAt: "desc" },
     })
     : [];
@@ -21,7 +26,11 @@ export default async function SupportPage() {
     resolvedAt: t.resolvedAt?.toISOString() ?? null,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
+    replies: t.replies.map((reply) => ({
+      ...reply,
+      createdAt: reply.createdAt.toISOString(),
+    })),
   }));
 
-  return <SupportClient initialTickets={serialized} />;
+  return <SupportClient initialTickets={serialized} isAuthenticated={Boolean(userId)} />;
 }

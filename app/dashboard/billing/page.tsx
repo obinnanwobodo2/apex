@@ -9,12 +9,17 @@ export default async function BillingPage() {
   const guestPreview = !userId && isDashboardGuestPreviewEnabled();
   if (!userId && !guestPreview) redirect("/login");
 
-  const subscriptions = userId
-    ? await prisma.subscription.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    })
-    : [];
+  const [subscriptions, paystackCustomer] = userId
+    ? await Promise.all([
+      prisma.subscription.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.paystackCustomer.findUnique({
+        where: { clientId: userId },
+      }),
+    ])
+    : [[], null];
 
   const serialized = subscriptions.map((s) => ({
     ...s,
@@ -24,5 +29,14 @@ export default async function BillingPage() {
     updatedAt: s.updatedAt.toISOString(),
   }));
 
-  return <BillingClient initialSubscriptions={serialized} />;
+  return (
+    <BillingClient
+      initialSubscriptions={serialized}
+      initialPaystackCustomer={paystackCustomer ? {
+        ...paystackCustomer,
+        createdAt: paystackCustomer.createdAt.toISOString(),
+        updatedAt: paystackCustomer.updatedAt.toISOString(),
+      } : null}
+    />
+  );
 }

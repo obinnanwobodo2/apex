@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, FolderKanban, CreditCard,
-  Settings, LogOut, Menu, ChevronRight, Shield, LifeBuoy, FileImage, MessageCircle,
+  LogOut, Menu, ChevronRight, Shield, LifeBuoy, FileImage, MessageCircle, Globe,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -17,9 +17,9 @@ const NAV_ITEMS = [
   { href: "/admin/projects", icon: <FolderKanban className="h-4 w-4" />, label: "Projects" },
   { href: "/admin/messages", icon: <MessageCircle className="h-4 w-4" />, label: "Messages" },
   { href: "/admin/files", icon: <FileImage className="h-4 w-4" />, label: "Files" },
+  { href: "/admin/domains", icon: <Globe className="h-4 w-4" />, label: "Domains" },
   { href: "/admin/billing", icon: <CreditCard className="h-4 w-4" />, label: "Revenue" },
   { href: "/admin/support", icon: <LifeBuoy className="h-4 w-4" />, label: "Support" },
-  { href: "/admin/settings", icon: <Settings className="h-4 w-4" />, label: "Settings" },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

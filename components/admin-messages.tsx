@@ -17,6 +17,7 @@ interface Message {
 
 interface ProjectThread {
   id: string;
+  clientId: string;
   title: string;
   status: string;
   clientName: string;
@@ -99,6 +100,7 @@ export default function AdminMessagesClient({ projects }: { projects: ProjectThr
                 projectTitle={`${selected.title} — ${selected.clientName}`}
                 initialMessages={selected.messages}
                 isAdmin={true}
+                clientId={selected.clientId}
               />
             ) : (
               <Card className="h-full">

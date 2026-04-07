@@ -87,37 +87,20 @@ export type PackageId = keyof typeof PACKAGES;
 export type Package = (typeof PACKAGES)[PackageId];
 
 export const CRM_PACKAGES = {
-  "crm-starter": {
-    id: "crm-starter",
-    name: "CRM Starter",
-    price: 199,
-    badge: "ESSENTIAL",
-    tagline: "Simple CRM for small teams",
-    turnaround: "1–2 business days setup",
-    popular: false,
-    features: [
-      "Up to 500 contacts",
-      "Basic pipeline management",
-      "Task & activity tracking",
-      "WhatsApp & email integration",
-      "AI-powered contact summaries",
-    ],
-  },
   "crm-pro": {
     id: "crm-pro",
     name: "CRM Pro",
-    price: 1200,
-    badge: "MOST POPULAR",
-    tagline: "Full CRM power for growing businesses",
+    price: 199,
+    badge: "PRO",
+    tagline: "One complete CRM plan for growing businesses",
     turnaround: "1–2 business days setup",
     popular: true,
     features: [
-      "Unlimited contacts",
-      "Advanced pipeline & deal tracking",
-      "Full integrations (WhatsApp, Gmail, Calendar)",
-      "AI deal insights & lead scoring",
-      "Custom webhooks & automations",
-      "Priority support",
+      "Unlimited contacts and deal tracking",
+      "Tasks, reminders, and activity timeline",
+      "AI assistant for follow-ups and insights",
+      "Real-time notifications and messaging",
+      "Paystack billing, excl. VAT, cancel anytime",
     ],
   },
 } as const;

@@ -4,7 +4,38 @@ import { prisma } from "@/lib/prisma";
 import { Users, CreditCard, TrendingUp, Activity, ArrowUpRight, Users2, FolderKanban, Banknote, LayoutDashboard, LifeBuoy, Bot, FileImage } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, PACKAGES } from "@/lib/utils";
+
+function recurringAmount(sub: {
+  package: string;
+  amount: number;
+  hostingAmount: number;
+  projectType: string | null;
+}) {
+  const isDomain = sub.projectType === "domain_registration" || sub.package === "domain-registration";
+  const isCrm = sub.package.startsWith("crm-");
+  const isWebsite = sub.package in PACKAGES;
+  if (isCrm) return sub.amount;
+  if (isWebsite) return sub.hostingAmount ?? 0;
+  if (isDomain) return 0;
+  return sub.amount;
+}
+
+function compactBillingLabel(sub: {
+  package: string;
+  amount: number;
+  hostingAmount: number;
+  projectType: string | null;
+}) {
+  const isDomain = sub.projectType === "domain_registration" || sub.package === "domain-registration";
+  const isCrm = sub.package.startsWith("crm-");
+  const isWebsite = sub.package in PACKAGES;
+  if (isCrm) return `${formatCurrency(sub.amount)}/mo`;
+  if (isWebsite && (sub.hostingAmount ?? 0) > 0) return `${formatCurrency(sub.amount)} once-off + hosting`;
+  if (isWebsite) return `${formatCurrency(sub.amount)} once-off`;
+  if (isDomain) return `${formatCurrency(sub.amount)}/year`;
+  return formatCurrency(sub.amount);
+}
 
 export default async function AdminOverviewPage() {
   const { userId } = await auth();
@@ -22,10 +53,11 @@ export default async function AdminOverviewPage() {
     where: { paid: true },
   });
 
-  const mrr = await prisma.subscription.aggregate({
-    _sum: { amount: true },
+  const recurringSubs = await prisma.subscription.findMany({
     where: { status: "active", paid: true },
+    select: { package: true, amount: true, hostingAmount: true, projectType: true },
   });
+  const mrr = recurringSubs.reduce((sum, sub) => sum + recurringAmount(sub), 0);
 
   const recentSubs = await prisma.subscription.findMany({
     take: 8,
@@ -36,7 +68,7 @@ export default async function AdminOverviewPage() {
   const stats = [
     { label: "Total Clients", value: String(totalProfiles), sub: "Registered users", icon: <Users className="h-5 w-5" />, color: "text-brand-green bg-brand-green/10", href: "/admin/clients" },
     { label: "Active Subscriptions", value: String(activeSubs), sub: `${totalSubs} total`, icon: <CreditCard className="h-5 w-5" />, color: "text-brand-navy bg-brand-navy/5", href: "/admin/billing" },
-    { label: "MRR", value: formatCurrency(mrr._sum.amount ?? 0), sub: "Monthly recurring", icon: <TrendingUp className="h-5 w-5" />, color: "text-brand-navy bg-gray-100", href: "/admin/billing" },
+    { label: "MRR", value: formatCurrency(mrr), sub: "Monthly recurring", icon: <TrendingUp className="h-5 w-5" />, color: "text-brand-navy bg-gray-100", href: "/admin/billing" },
     { label: "Total Revenue", value: formatCurrency(revenue._sum.amountPaid ?? 0), sub: "All time", icon: <Activity className="h-5 w-5" />, color: "text-brand-navy bg-gray-100", href: "/admin/billing" },
   ];
 
@@ -84,7 +116,7 @@ export default async function AdminOverviewPage() {
                     <div className="text-xs text-gray-400 capitalize">{s.package} · {s.createdAt.toLocaleDateString("en-ZA")}</div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="text-sm font-bold text-brand-navy">{formatCurrency(s.amount)}</div>
+                    <div className="text-sm font-bold text-brand-navy">{compactBillingLabel(s)}</div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       s.status === "active" ? "bg-brand-green/10 text-brand-navy" : s.status === "pending" ? "bg-brand-navy/5 text-brand-navy" : "bg-gray-100 text-gray-500"
                     }`}>{s.status}</span>

@@ -8,30 +8,31 @@ datasource db {
 }
 
 model Profile {
-  id              String   @id
-  fullName        String?
-  phone           String?
-  avatarUrl       String?
+  id             String   @id
+  fullName       String?
+  phone          String?
+  avatarUrl      String?
   // Company info
-  companyName     String?
-  companyAddress  String?
-  companyWebsite  String?
-  vatNumber       String?
+  companyName    String?
+  companyAddress String?
+  companyWebsite String?
+  vatNumber      String?
   // Preferences
-  notifyEmail     Boolean  @default(true)
-  notifyUpdates   Boolean  @default(true)
-  notifyBilling   Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  notifyEmail    Boolean  @default(true)
+  notifyUpdates  Boolean  @default(true)
+  notifyBilling  Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  subscriptions    Subscription[]
-  projects         Project[]
-  supportTickets   SupportTicket[]
-  contacts         Contact[]
-  deals            Deal[]
-  tasks            Task[]
-  activities       Activity[]
-  crmIntegrations  CrmIntegration[]
+  subscriptions   Subscription[]
+  projects        Project[]
+  supportTickets  SupportTicket[]
+  contacts        Contact[]
+  deals           Deal[]
+  tasks           Task[]
+  activities      Activity[]
+  crmIntegrations CrmIntegration[]
+  clientFiles     ClientFile[]
 }
 
 model Subscription {
@@ -50,7 +51,7 @@ model Subscription {
   invoiceNumber     String?
   paystackReference String?   @unique
   nextBillingDate   DateTime?
-  hostingPlan       String?   // none | basic | business
+  hostingPlan       String? // none | basic | business
   hostingAmount     Float     @default(0)
   projectType       String?
   features          String?
@@ -66,19 +67,22 @@ model Subscription {
 model Project {
   id             String    @id @default(cuid())
   userId         String
+  clientId       String?
   subscriptionId String?
   title          String
   type           String    @default("website") // website | crm | ecommerce | custom | request
   status         String    @default("requested") // requested | scoping | in_progress | review | completed
+  stage          Int       @default(1)
   progress       Int       @default(0)
   websiteUrl     String?
+  reviewUrl      String?
   description    String?
   notes          String?
-  milestones     String?   // JSON array
+  milestones     String? // JSON array
   budget         String?
   deadline       DateTime?
-  attachments    String?   // JSON array of storage URLs
-  services       String?   // JSON array of selected services
+  attachments    String? // JSON array of storage URLs
+  services       String? // JSON array of selected services
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -100,18 +104,20 @@ model ProjectMessage {
 }
 
 model SupportTicket {
-  id        String    @id @default(cuid())
-  userId    String
-  subject   String
-  message   String
-  priority  String    @default("normal") // low | normal | high | urgent
-  status    String    @default("open")   // open | in_progress | resolved | closed
-  response  String?
+  id         String    @id @default(cuid())
+  userId     String
+  clientId   String?
+  subject    String
+  message    String
+  priority   String    @default("normal") // low | normal | high | urgent
+  status     String    @default("open") // open | in_progress | resolved | closed
+  response   String?
   resolvedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies SupportReply[]
 }
 
 // ── CRM Models ────────────────────────────────────────────────────────────────
@@ -192,4 +198,106 @@ model CrmIntegration {
   updatedAt DateTime @updatedAt
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ClientFile {
+  id           String   @id @default(cuid())
+  userId       String
+  originalName String
+  type         String
+  size         Int
+  category     String
+  content      Bytes
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  clientId   String
+  senderRole String
+  senderName String
+  content    String
+  createdAt  DateTime @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  clientId  String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([clientId, createdAt])
+  @@index([clientId, read])
+}
+
+model DomainRequest {
+  id            String   @id @default(cuid())
+  clientId      String
+  domainName    String
+  extension     String
+  paymentType   String
+  notes         String?
+  status        String   @default("pending")
+  paymentStatus String   @default("unpaid")
+  checkedNote   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([clientId, createdAt])
+  @@index([status, paymentStatus])
+}
+
+model Domain {
+  id           String   @id @default(cuid())
+  clientId     String
+  domainName   String
+  registeredAt DateTime
+  expiresAt    DateTime
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([clientId, createdAt])
+}
+
+model SupportReply {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderRole String
+  senderName String
+  message    String
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model PaystackCustomer {
+  id                   String   @id @default(cuid())
+  clientId             String   @unique
+  paystackCustomerCode String
+  subscriptionCode     String?
+  planCode             String?
+  status               String   @default("inactive")
+  nextBillingDate      String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model FileRecord {
+  id         String   @id @default(cuid())
+  clientId   String
+  fileName   String
+  fileUrl    String
+  category   String
+  uploadedAt DateTime @default(now())
+
+  @@index([clientId, uploadedAt])
 }

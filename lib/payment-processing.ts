@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ALL_PACKAGES, type AnyPackageId } from "@/lib/utils";
+import { ALL_PACKAGES, PACKAGES, type AnyPackageId } from "@/lib/utils";
 import {
   extractDomainFromSubscription,
   registerDomainWithProvider,
@@ -54,6 +54,7 @@ interface SubscriptionProjectMeta {
     hasBranding?: string | null;
     brandingNotes?: string | null;
     pagesFeatures?: string | null;
+    projectApproach?: string | null;
   };
 }
 
@@ -124,6 +125,7 @@ async function ensureProjectForSubscription(sub: {
   const description = requestMeta?.description?.trim() || sub.description || null;
 
   const noteParts = [
+    meta?.onboarding?.projectApproach?.trim() ? `Project approach: ${meta.onboarding.projectApproach.trim()}` : "",
     requestMeta?.notes?.trim(),
     sub.timeline?.trim() ? `Preferred timeline: ${sub.timeline.trim()}` : "",
     sub.hostingPlan && sub.hostingPlan !== "none" ? `Hosting plan: ${sub.hostingPlan}` : "",
@@ -272,7 +274,13 @@ export async function processSuccessfulPayment(reference: string): Promise<Payme
     return { success: true, packageName: result.packageName, warning: result.warning, domain: result.domain };
   }
 
-  const nextBilling = sub.nextBillingDate ?? getFirstDayOfNextMonth(new Date());
+  const isWebsiteBuild = sub.package in PACKAGES;
+  const hasRecurringHosting = isWebsiteBuild && (sub.hostingAmount ?? 0) > 0;
+  const isCrmSubscription = sub.package.startsWith("crm-");
+  const shouldSetRecurringBilling = hasRecurringHosting || isCrmSubscription;
+  const nextBilling = shouldSetRecurringBilling
+    ? (sub.nextBillingDate ?? getFirstDayOfNextMonth(new Date()))
+    : null;
 
   await prisma.subscription.update({
     where: { id: sub.id },

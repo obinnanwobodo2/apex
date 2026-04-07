@@ -8,7 +8,7 @@ export const PAYSTACK_PUBLIC_KEY =
 
 export interface PaystackInitPayload {
   email: string;
-  amount: number; // in kobo/cents — ZAR * 100
+  amount?: number; // in kobo/cents — ZAR * 100
   currency: "ZAR";
   reference: string;
   callback_url: string;
@@ -20,6 +20,7 @@ export interface PaystackInitPayload {
     }>;
     package: string;
     subscription_id: string;
+    [key: string]: unknown;
   };
   plan?: string; // Paystack plan code for subscriptions
   channels?: string[];

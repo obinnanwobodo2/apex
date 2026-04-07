@@ -3,8 +3,9 @@ import { ArrowRight, Bot, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { formatCurrency, CRM_PACKAGES } from "@/lib/utils";
+import PaystackSubscribeButton from "@/components/paystack-subscribe-button";
 
-const starterPrice = CRM_PACKAGES["crm-starter"].price;
+const proPrice = CRM_PACKAGES["crm-pro"].price;
 
 export default function CrmDemoPage() {
   return (
@@ -45,18 +46,18 @@ export default function CrmDemoPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6">
             <h2 className="text-xl font-bold text-brand-navy mb-3">Checkout terms</h2>
             <p className="text-sm text-gray-600 leading-relaxed">
-              CRM Starter is {formatCurrency(starterPrice)}/month. Billing is monthly and auto-renews until cancelled.
+              CRM Pro is {formatCurrency(proPrice)}/month (excl. VAT). Billing is monthly and auto-renews until cancelled.
               Cancellation requires 30 days written notice.
             </p>
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/checkout?package=crm-starter"
+              <PaystackSubscribeButton
+                packageId="crm-pro"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white"
                 style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}
               >
-                Continue to {formatCurrency(starterPrice)}/mo Checkout
+                Continue to {formatCurrency(proPrice)}/mo Checkout
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </PaystackSubscribeButton>
               <Link
                 href="/crm"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-300 text-sm font-semibold text-brand-navy hover:bg-gray-100"

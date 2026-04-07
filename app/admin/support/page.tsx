@@ -16,6 +16,9 @@ export default async function AdminSupportPage() {
           phone: true,
         },
       },
+      replies: {
+        orderBy: { createdAt: "asc" },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -25,6 +28,10 @@ export default async function AdminSupportPage() {
     resolvedAt: t.resolvedAt?.toISOString() ?? null,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
+    replies: t.replies.map((reply) => ({
+      ...reply,
+      createdAt: reply.createdAt.toISOString(),
+    })),
   }));
 
   return <AdminSupportClient initialTickets={serialized} />;

@@ -62,6 +62,8 @@ export async function POST(req: Request) {
       requestBudget,
       requestDeadline,
       requestNotes,
+      billingType,
+      recurringMonthlyAmount,
       invoiceNumber,
       existingSubscriptionId,
     } = body;
@@ -148,8 +150,15 @@ export async function POST(req: Request) {
 
     const reference = generateReference("APX");
     const normalizedHostingAmount = sanitizeFloat(hostingAmount, { min: 0, max: 100000, fallback: 0 });
-    const subtotal = pkg.price + normalizedHostingAmount;
-    const amountWithVat = calculateTotal(subtotal);
+    const normalizedRecurringMonthlyAmount = sanitizeFloat(recurringMonthlyAmount, { min: 0, max: 100000, fallback: 0 });
+    const normalizedBillingType = sanitizeText(billingType, { maxLength: 40 });
+    const isCrmPackage = normalizedPackageId.startsWith("crm-");
+    const websiteOnceOffBuild = isWebsitePackage ? pkg.price : 0;
+    const recurringHostingAmount = isWebsitePackage ? normalizedHostingAmount : 0;
+    const recurringPlanAmount = isCrmPackage ? pkg.price : 0;
+    const checkoutSubtotal = isWebsitePackage ? websiteOnceOffBuild : (pkg.price + normalizedHostingAmount);
+    const recurringMonthly = recurringHostingAmount > 0 ? recurringHostingAmount : recurringPlanAmount;
+    const amountWithVat = calculateTotal(checkoutSubtotal);
 
     // Ensure profile exists
     await prisma.profile.upsert({
@@ -185,6 +194,15 @@ export async function POST(req: Request) {
         hasBranding: cleanHasBranding,
         brandingNotes: cleanBrandingNotes,
         pagesFeatures: cleanPagesFeatures,
+        projectApproach: cleanString(body.projectApproach),
+      },
+      billing: {
+        model: normalizedBillingType || (isWebsitePackage ? "website_onceoff" : "subscription"),
+        paidTodaySubtotal: checkoutSubtotal,
+        paidTodayWithVat: amountWithVat,
+        oneOffBuildAmount: websiteOnceOffBuild,
+        recurringMonthly,
+        recurringHint: normalizedRecurringMonthlyAmount || recurringMonthly,
       },
       request: {
         title: cleanString(requestTitle),
@@ -201,7 +219,7 @@ export async function POST(req: Request) {
         id: reference,
         userId,
         package: pkg.id,
-        amount: subtotal,
+        amount: checkoutSubtotal,
         amountPaid: amountWithVat,
         status: "pending",
         businessName: normalizedBusinessName,
@@ -214,7 +232,7 @@ export async function POST(req: Request) {
         budget: cleanString(budget),
         timeline: cleanString(timeline),
         hostingPlan: cleanString(hostingPlan),
-        hostingAmount: normalizedHostingAmount,
+        hostingAmount: recurringHostingAmount,
         features: JSON.stringify(metadata),
       },
     });

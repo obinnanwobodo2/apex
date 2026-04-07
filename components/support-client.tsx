@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
   MessageCircle, Mail, Phone, Calendar, HelpCircle, ExternalLink,
   Send, ChevronDown, ChevronUp, Ticket, Clock, CheckCircle2, AlertCircle,
@@ -11,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { getPusherClient } from "@/lib/pusher-client";
+import { getClientChannelName } from "@/lib/realtime";
 
 interface SupportTicket {
   id: string;
@@ -21,7 +24,17 @@ interface SupportTicket {
   response: string | null;
   resolvedAt: string | null;
   createdAt: string;
+  updatedAt?: string;
+  replies?: Array<{
+    id: string;
+    senderRole: string;
+    senderName: string;
+    message: string;
+    createdAt: string;
+  }>;
 }
+
+type SupportReply = NonNullable<SupportTicket["replies"]>[number];
 
 const FAQS = [
   { q: "How do I request a website update?", a: "Send us a WhatsApp or email describing the change. Updates are usually completed within 24–48 hours on business days." },
@@ -45,7 +58,16 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
   closed: <CheckCircle2 className="h-3.5 w-3.5" />,
 };
 
-export default function SupportClient({ initialTickets }: { initialTickets: SupportTicket[] }) {
+const LAST_SEEN_STORAGE_KEY = "apex_support_last_seen_at";
+
+export default function SupportClient({
+  initialTickets,
+  isAuthenticated,
+}: {
+  initialTickets: SupportTicket[];
+  isAuthenticated: boolean;
+}) {
+  const { userId } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>(initialTickets);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [form, setForm] = useState({ subject: "", message: "", priority: "normal" });
@@ -53,9 +75,71 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ subject?: string; message?: string }>({});
+  const [lastSeenAt, setLastSeenAt] = useState<string | null>(null);
+
+  const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/apexvisual/30min";
+
+  useEffect(() => {
+    try {
+      const previous = localStorage.getItem(LAST_SEEN_STORAGE_KEY);
+      if (previous) setLastSeenAt(previous);
+      const now = new Date().toISOString();
+      localStorage.setItem(LAST_SEEN_STORAGE_KEY, now);
+    } catch {
+      // no-op
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !userId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(getClientChannelName(userId));
+    const onReply = (payload: { ticketId?: string; reply?: SupportReply }) => {
+      const reply = payload.reply;
+      if (!payload.ticketId || !reply) return;
+      setTickets((prev) => prev.map((ticket) => {
+        if (ticket.id !== payload.ticketId) return ticket;
+        return {
+          ...ticket,
+          status: "in_progress",
+          response: reply.message,
+          replies: [...(ticket.replies ?? []), reply],
+        };
+      }));
+    };
+
+    channel.bind("new-reply", onReply);
+
+    return () => {
+      channel.unbind("new-reply", onReply);
+      pusher.unsubscribe(getClientChannelName(userId));
+    };
+  }, [isAuthenticated, userId]);
+
+  const unreadTicketIds = useMemo(() => {
+    if (!lastSeenAt) return new Set<string>();
+    const lastSeen = new Date(lastSeenAt).getTime();
+    if (!Number.isFinite(lastSeen)) return new Set<string>();
+    const set = new Set<string>();
+    tickets.forEach((ticket) => {
+      const unread = (ticket.replies ?? []).some((reply) => {
+        if (reply.senderRole !== "admin") return false;
+        const created = new Date(reply.createdAt).getTime();
+        return Number.isFinite(created) && created > lastSeen;
+      });
+      if (unread) set.add(ticket.id);
+    });
+    return set;
+  }, [tickets, lastSeenAt]);
 
   async function submitTicket(e: React.FormEvent) {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setError("Sign in to submit a support ticket.");
+      return;
+    }
     const errs: { subject?: string; message?: string } = {};
     if (!form.subject.trim()) errs.subject = "Subject is required.";
     if (!form.message.trim()) errs.message = "Message is required.";
@@ -64,7 +148,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch("/api/support", {
+      const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -90,12 +174,12 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
 
       {/* Quick contact */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { icon: <MessageCircle className="h-5 w-5" />, label: "WhatsApp", sub: "+27 75 459 8388", href: "https://wa.me/27754598388", color: "text-brand-navy bg-brand-green/10" },
-          { icon: <Mail className="h-5 w-5" />, label: "Email Us", sub: "info@apexvisual.co.za", href: "mailto:info@apexvisual.co.za", color: "text-brand-navy bg-brand-navy/5" },
-          { icon: <Calendar className="h-5 w-5" />, label: "Book a Call", sub: "30 min · Free", href: "https://calendly.com/apexvisual", color: "text-brand-navy bg-gray-100" },
-          { icon: <Phone className="h-5 w-5" />, label: "Call Us", sub: "+27 75 459 8388", href: "tel:+27754598388", color: "text-brand-green bg-brand-green/10" },
-        ].map((c) => (
+          {[
+            { icon: <MessageCircle className="h-5 w-5" />, label: "WhatsApp", sub: "+27 75 459 8388", href: "https://wa.me/27754598388", color: "text-brand-navy bg-brand-green/10" },
+            { icon: <Mail className="h-5 w-5" />, label: "Email Us", sub: "info@apexvisual.co.za", href: "mailto:info@apexvisual.co.za", color: "text-brand-navy bg-brand-navy/5" },
+            { icon: <Calendar className="h-5 w-5" />, label: "Book a Call", sub: "30 min · Free", href: calendlyUrl, color: "text-brand-navy bg-gray-100" },
+            { icon: <Phone className="h-5 w-5" />, label: "Call Us", sub: "+27 75 459 8388", href: "tel:+27754598388", color: "text-brand-green bg-brand-green/10" },
+          ].map((c) => (
           <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer"
             className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 hover:border-brand-green/30 hover:shadow-md transition-all">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.color}`}>{c.icon}</div>
@@ -130,7 +214,8 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                 </button>
               </div>
             ) : (
-              <form onSubmit={submitTicket} className="space-y-4">
+              isAuthenticated ? (
+                <form onSubmit={submitTicket} className="space-y-4">
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <div className="space-y-1.5">
                   <Label>Subject *</Label>
@@ -168,6 +253,9 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                   <Send className="h-4 w-4 mr-2" />{submitting ? "Submitting…" : "Submit Ticket"}
                 </Button>
               </form>
+              ) : (
+                <p className="text-sm text-gray-400">Sign in to submit a support ticket.</p>
+              )
             )}
           </CardContent>
         </Card>
@@ -217,10 +305,13 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                         {new Date(t.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${PRIORITY_COLORS[t.priority] ?? "text-gray-500 bg-gray-100"}`}>
-                        {t.priority}
-                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {unreadTicketIds.has(t.id) && (
+                          <span className="inline-block h-2 w-2 rounded-full bg-brand-green" />
+                        )}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${PRIORITY_COLORS[t.priority] ?? "text-gray-500 bg-gray-100"}`}>
+                          {t.priority}
+                        </span>
                       <Badge variant={t.status === "resolved" || t.status === "closed" ? "default" : "secondary"} className="gap-1 text-xs">
                         {STATUS_ICONS[t.status]}
                         {t.status.replace("_", " ")}
@@ -231,6 +322,25 @@ export default function SupportClient({ initialTickets }: { initialTickets: Supp
                     <div className="mt-3 p-3 bg-brand-green/5 border border-brand-green/10 rounded-lg text-sm text-gray-700">
                       <span className="text-xs font-semibold text-brand-green uppercase tracking-wide block mb-1">Team Response</span>
                       {t.response}
+                    </div>
+                  )}
+                  {t.replies && t.replies.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {t.replies.map((reply) => (
+                        <div key={reply.id} className="rounded-lg border border-gray-100 bg-white px-3 py-2 text-sm text-gray-700">
+                          <p className="text-[11px] font-semibold text-brand-navy mb-1">
+                            {reply.senderName}
+                            {" · "}
+                            {new Date(reply.createdAt).toLocaleString("en-ZA", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p>{reply.message}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -18,7 +18,7 @@ const SERVICES = [
   { id: "priority", label: "Priority Delivery", icon: Rocket },
 ];
 
-const BUDGETS = ["Under R5,000", "R5,000 – R15,000", "R15,000 – R50,000", "R50,000+", "Monthly retainer"];
+const BUDGETS = ["Under R5,000 (once-off)", "R5,000 – R15,000 (once-off)", "R15,000 – R50,000 (once-off)", "R50,000+ (once-off)", "Need recommendation"];
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string }> = {
   requested: { label: "Submitted", icon: Clock, color: "text-brand-green" },

@@ -1,6 +1,7 @@
 "use client";
 
-import { type ChangeEvent, type DragEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Upload, File, ImageIcon, FileText, Trash2, Download, FolderOpen, Palette, FileCheck2, ShieldCheck, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const FILE_CATS = [
   { id: "brand", label: "Brand Assets" },
   { id: "other", label: "Other" },
 ];
+const MAX_CLIENT_FILE_SIZE = 3 * 1024 * 1024;
 
 function FileIcon({ type }: { type: string }) {
   if (type.startsWith("image")) return <ImageIcon className="h-5 w-5 text-brand-green" />;
@@ -42,6 +44,8 @@ function formatBytes(size: number) {
 }
 
 export default function FilesPage() {
+  const { isLoaded, userId } = useAuth();
+  const isAuthenticated = Boolean(userId);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [dragging, setDragging] = useState(false);
   const [tab, setTab] = useState("all");
@@ -57,7 +61,12 @@ export default function FilesPage() {
     return files.filter((file) => file.category === tab);
   }, [files, tab]);
 
-  async function loadFiles() {
+  const loadFiles = useCallback(async () => {
+    if (!isAuthenticated) {
+      setFiles([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -71,27 +80,40 @@ export default function FilesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isLoaded) return;
     void loadFiles();
-  }, []);
+  }, [isLoaded, loadFiles]);
 
   function openPicker() {
     inputRef.current?.click();
   }
 
   async function uploadFiles(list: FileList | File[]) {
+    if (!isAuthenticated) {
+      setError("Sign in to upload files.");
+      return;
+    }
     const incoming = Array.from(list).filter(Boolean);
     if (incoming.length === 0) return;
 
+    const oversized = incoming.filter((file) => file.size > MAX_CLIENT_FILE_SIZE);
+    const allowed = incoming.filter((file) => file.size <= MAX_CLIENT_FILE_SIZE);
+    if (oversized.length > 0) {
+      const sample = oversized.slice(0, 2).map((file) => file.name).join(", ");
+      setError(`Some files exceed the 3MB limit: ${sample}. Try compressing images before uploading.`);
+    }
+    if (allowed.length === 0) return;
+
     setUploading(true);
-    setError("");
+    if (oversized.length === 0) setError("");
     setSuccess("");
 
     try {
       const formData = new FormData();
-      incoming.forEach((file) => formData.append("files", file));
+      allowed.forEach((file) => formData.append("files", file));
 
       const res = await fetch("/api/files", {
         method: "POST",
@@ -127,6 +149,7 @@ export default function FilesPage() {
   }
 
   async function removeFile(id: string) {
+    if (!isAuthenticated) return;
     setDeleteId(id);
     setError("");
     setSuccess("");
@@ -163,7 +186,7 @@ export default function FilesPage() {
           <h1 className="text-2xl font-extrabold text-brand-navy">Files & Assets</h1>
           <p className="text-sm text-gray-400 mt-0.5">Upload design files, brand assets, API credentials and more</p>
         </div>
-        <Button onClick={openPicker} disabled={uploading}>
+        <Button onClick={openPicker} disabled={uploading || !isAuthenticated}>
           {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
           {uploading ? "Uploading..." : "Upload Files"}
         </Button>
@@ -202,7 +225,7 @@ export default function FilesPage() {
           <Upload className={`h-10 w-10 mx-auto mb-3 ${dragging ? "text-brand-green" : "text-gray-300"}`} />
         )}
         <p className="font-semibold text-brand-navy">Drag & drop files here</p>
-        <p className="text-sm text-gray-400 mt-1">or click to browse · Max 50MB per file · Sent to admin automatically</p>
+        <p className="text-sm text-gray-400 mt-1">or click to browse · Max 3MB per file · Sent to admin automatically</p>
         <div className="flex flex-wrap justify-center gap-2 mt-4">
           {["Logo files", "Brand guidelines", "Photos", "Documents", "API keys"].map((cat) => (
             <span key={cat} className="text-xs px-3 py-1 bg-gray-100 rounded-full text-gray-500">{cat}</span>
@@ -228,6 +251,14 @@ export default function FilesPage() {
           <CardContent className="py-16 text-center">
             <Loader2 className="h-10 w-10 mx-auto mb-3 text-gray-300 animate-spin" />
             <p className="text-sm text-gray-400">Loading files...</p>
+          </CardContent>
+        </Card>
+      ) : !isAuthenticated ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <FolderOpen className="h-12 w-12 text-gray-200 mx-auto mb-3" />
+            <h3 className="font-bold text-brand-navy mb-1">Sign in required</h3>
+            <p className="text-sm text-gray-400">Sign in to view your files.</p>
           </CardContent>
         </Card>
       ) : filteredFiles.length > 0 ? (

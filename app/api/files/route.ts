@@ -6,7 +6,7 @@ import { readJsonObject, sanitizeText } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = new Set([
   ".png",
   ".jpg",
@@ -58,7 +58,7 @@ function validateFile(file: File): string | null {
   const fileName = (file.name || "").trim();
   if (!fileName) return "Missing file name";
   if (file.size <= 0) return "File is empty";
-  if (file.size > MAX_FILE_SIZE) return "Exceeds 50MB size limit";
+  if (file.size > MAX_FILE_SIZE) return "Exceeds 4MB size limit";
 
   const type = (file.type || "").toLowerCase();
   const ext = extensionOf(fileName);
@@ -82,8 +82,44 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const files = await readUserFiles(userId);
-  return NextResponse.json(files);
+  const records = await prisma.fileRecord.findMany({
+    where: { clientId: userId },
+    orderBy: { uploadedAt: "desc" },
+  });
+
+  if (records.length === 0) {
+    const files = await readUserFiles(userId);
+    return NextResponse.json(files);
+  }
+
+  const files = await prisma.clientFile.findMany({
+    where: {
+      userId,
+      id: { in: records.map((record) => record.id) },
+    },
+    select: {
+      id: true,
+      type: true,
+      size: true,
+      uploadedAt: true,
+    },
+  });
+  const detailsById = new Map(files.map((file) => [file.id, file]));
+
+  return NextResponse.json(
+    records.map((record) => {
+      const detail = detailsById.get(record.id);
+      return {
+        id: record.id,
+        userId,
+        originalName: record.fileName,
+        type: detail?.type ?? "application/octet-stream",
+        size: detail?.size ?? 0,
+        category: record.category,
+        uploadedAt: (detail?.uploadedAt ?? record.uploadedAt).toISOString(),
+      };
+    })
+  );
 }
 
 export async function POST(req: Request) {
@@ -111,8 +147,12 @@ export async function POST(req: Request) {
       rejected.push({ name: file.name || "unnamed", reason });
       continue;
     }
-    const stored = await saveUserFile(userId, file);
-    uploaded.push(stored);
+    try {
+      const stored = await saveUserFile(userId, file);
+      uploaded.push(stored);
+    } catch {
+      rejected.push({ name: file.name || "unnamed", reason: "Storage failed. Try a smaller file." });
+    }
   }
 
   if (uploaded.length > 0) {

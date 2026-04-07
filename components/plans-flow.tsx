@@ -35,6 +35,7 @@ interface OnboardingForm {
   pagesFeatures: string;
   // New fields
   projectType: string;
+  projectApproach: "template" | "custom" | "clone" | "";
   budget: string;
   timeline: string;
   hostingPlan: "none" | "basic" | "business";
@@ -47,7 +48,7 @@ const HOSTING_OPTIONS = [
 ];
 
 const PROJECT_TYPES = ["Business Website", "E-Commerce Store", "Portfolio / Showcase", "Landing Page", "Blog / News", "Booking System", "Custom Web App"];
-const BUDGETS = ["Under R1,000/mo", "R1,000 – R2,000/mo", "R2,000 – R4,000/mo", "R4,000+/mo", "Once-off project"];
+const BUDGETS = ["Under R1,000 once-off", "R1,000 – R2,000 once-off", "R2,000 – R4,000 once-off", "R4,000+ once-off", "Need recommendation"];
 const TIMELINES = ["ASAP (rush)", "1–2 weeks", "2–4 weeks", "1–2 months", "Flexible"];
 
 const EMPTY_FORM: OnboardingForm = {
@@ -60,6 +61,7 @@ const EMPTY_FORM: OnboardingForm = {
   brandingNotes: "",
   pagesFeatures: "",
   projectType: "",
+  projectApproach: "",
   budget: "",
   timeline: "",
   hostingPlan: "none",
@@ -75,8 +77,8 @@ const PACKAGE_ICONS: Record<PackageId, React.ReactNode> = {
 
 function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
   const steps = [
-    { n: 1, label: "Choose Plan" },
-    { n: 2, label: "Onboarding" },
+    { n: 1, label: "Choose Package" },
+    { n: 2, label: "Project Details" },
     { n: 3, label: "Pay" },
   ];
   return (
@@ -112,8 +114,8 @@ function StepPlans({
   return (
     <div>
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-extrabold text-brand-navy">Choose Your Plan</h2>
-        <p className="text-gray-500 text-sm mt-1">All plans include a professionally built website + monthly care.</p>
+        <h2 className="text-2xl font-extrabold text-brand-navy">Choose Your Website Package</h2>
+        <p className="text-gray-500 text-sm mt-1">These are once-off website build fees. Hosting and CRM are recurring add-ons.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -148,7 +150,7 @@ function StepPlans({
 
               <div className="mb-4">
                 <span className="text-3xl font-extrabold text-brand-navy">{formatCurrency(pkg.price)}</span>
-                <span className="text-gray-500 text-xs">/month</span>
+                <span className="text-gray-500 text-xs"> once-off</span>
               </div>
 
               <ul className="space-y-2 flex-1 mb-4">
@@ -179,7 +181,7 @@ function StepPlans({
       </div>
 
       <p className="text-center text-xs text-gray-500 mt-4">
-        Prices exclude VAT (15%). Billed monthly. Cancel with 30 days notice.
+        Prices exclude VAT (15%). Website package is paid once-off.
       </p>
     </div>
   );
@@ -239,7 +241,7 @@ function StepOnboarding({
         <div>
           <h2 className="text-xl font-extrabold text-brand-navy">Tell us about your business</h2>
           <p className="text-gray-500 text-xs mt-0.5">
-            <span className="font-semibold text-brand-green">{pkg.name} Plan</span> · {formatCurrency(pkg.price)}/month
+            <span className="font-semibold text-brand-green">{pkg.name} Package</span> · {formatCurrency(pkg.price)} once-off
           </p>
         </div>
       </div>
@@ -403,9 +405,11 @@ function StepInvoice({
   );
 
   const hostingOption = HOSTING_OPTIONS.find((h) => h.id === form.hostingPlan) ?? HOSTING_OPTIONS[0];
-  const subtotal = pkg.price + hostingOption.price;
-  const vat = calculateVAT(subtotal);
-  const total = calculateTotal(subtotal);
+  const oneOffSubtotal = pkg.price;
+  const oneOffVat = calculateVAT(oneOffSubtotal);
+  const totalDueToday = calculateTotal(oneOffSubtotal);
+  const recurringMonthly = hostingOption.price;
+  const recurringMonthlyWithVat = recurringMonthly > 0 ? calculateTotal(recurringMonthly) : 0;
 
   const handlePay = async () => {
     setError("");
@@ -436,8 +440,11 @@ function StepInvoice({
           timeline: form.timeline,
           hostingPlan: form.hostingPlan,
           hostingAmount: hostingOption.price,
+          projectApproach: form.projectApproach,
+          billingType: "website_onceoff",
+          recurringMonthlyAmount: recurringMonthly,
           invoiceNumber,
-          totalAmount: subtotal,
+          totalAmount: oneOffSubtotal,
         }),
       });
 
@@ -502,10 +509,10 @@ function StepInvoice({
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-brand-navy">Apex Visual {pkg.name} Package</p>
-                <p className="text-xs text-gray-500 mt-0.5">Monthly retainer · Recurring subscription</p>
+                <p className="text-xs text-gray-500 mt-0.5">Website build fee · Once-off payment</p>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="text-xs bg-brand-green/10 text-brand-green font-medium px-2 py-0.5 rounded-full">
-                    Recurring monthly
+                    One-time payment
                   </span>
                   <span className="text-xs text-gray-500">· {pkg.turnaround} launch</span>
                 </div>
@@ -516,9 +523,9 @@ function StepInvoice({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-semibold text-brand-navy">{hostingOption.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{hostingOption.sub} · Monthly add-on</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{hostingOption.sub} · Monthly recurring after launch</p>
                 </div>
-                <p className="text-sm font-bold text-brand-navy">{formatCurrency(hostingOption.price)}</p>
+                <p className="text-sm font-bold text-brand-navy">{formatCurrency(hostingOption.price)}/mo</p>
               </div>
             )}
           </div>
@@ -526,16 +533,22 @@ function StepInvoice({
           {/* Totals */}
           <div className="px-5 py-4 space-y-2">
             <div className="flex justify-between text-sm text-gray-500">
-              <span>Subtotal</span><span>{formatCurrency(subtotal)}</span>
+              <span>Build subtotal</span><span>{formatCurrency(oneOffSubtotal)}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-500">
-              <span>VAT (15%)</span><span>{formatCurrency(vat)}</span>
+              <span>VAT (15%)</span><span>{formatCurrency(oneOffVat)}</span>
             </div>
             <Separator />
             <div className="flex justify-between font-extrabold text-brand-navy text-lg">
-              <span>Total Due</span><span>{formatCurrency(total)}</span>
+              <span>Total Due Today</span><span>{formatCurrency(totalDueToday)}</span>
             </div>
-            <p className="text-xs text-gray-500">Billed every month. First payment due today.</p>
+            {recurringMonthly > 0 ? (
+              <p className="text-xs text-gray-500">
+                Recurring after launch: {formatCurrency(recurringMonthlyWithVat)}/month incl. VAT for hosting.
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500">No recurring hosting selected.</p>
+            )}
           </div>
         </div>
 
@@ -549,8 +562,8 @@ function StepInvoice({
                 {pkg.name[0]}
               </div>
               <div>
-                <p className="text-sm font-bold text-brand-navy">{pkg.name} Plan</p>
-                <p className="text-xs text-gray-500">{formatCurrency(pkg.price)}/mo + VAT</p>
+                <p className="text-sm font-bold text-brand-navy">{pkg.name} Package</p>
+                <p className="text-xs text-gray-500">{formatCurrency(pkg.price)} once-off + VAT</p>
               </div>
             </div>
             <ul className="space-y-1.5">
@@ -572,20 +585,24 @@ function StepInvoice({
             {loading ? (
               <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing…</>
             ) : (
-              <><Lock className="h-4 w-4 mr-2" />Pay {formatCurrency(total)} with Paystack</>
+              <><Lock className="h-4 w-4 mr-2" />Pay {formatCurrency(totalDueToday)} Once-off</>
             )}
           </Button>
+
+          <div className="rounded-xl border border-brand-green/20 bg-brand-green/10 p-3 text-xs text-brand-navy">
+            Flow after payment: project brief saved → payment confirmed → upload files in Dashboard Files → admin builds and updates you in Messages.
+          </div>
 
           <div className="text-center space-y-1.5">
             <p className="text-xs text-gray-500 flex items-center justify-center gap-1.5">
               <Lock className="h-3 w-3" />Secured by Paystack · 256-bit encryption
             </p>
-            <p className="text-xs text-gray-500">Cancel anytime with 30 days notice</p>
+            <p className="text-xs text-gray-500">Website build is one-time. CRM and hosting are recurring add-ons only.</p>
           </div>
 
           {/* Trust badges */}
           <div className="grid grid-cols-2 gap-2">
-            {["Dedicated account manager", "Monthly updates included", "South Africa-based team", "30-day cancel notice"].map((t) => (
+            {["Dedicated account manager", "Secure payment", "South Africa-based team", "Live progress updates"].map((t) => (
               <div key={t} className="flex items-start gap-1.5 text-xs text-gray-500">
                 <CheckCircle2 className="h-3 w-3 text-brand-green mt-0.5 shrink-0" />{t}
               </div>
@@ -603,9 +620,15 @@ interface PlansFlowProps {
   open: boolean;
   onClose: () => void;
   initialPackageId?: PackageId | null;
+  initialProjectApproach?: "template" | "custom" | "clone" | null;
 }
 
-export default function PlansFlow({ open, onClose, initialPackageId = null }: PlansFlowProps) {
+export default function PlansFlow({
+  open,
+  onClose,
+  initialPackageId = null,
+  initialProjectApproach = null,
+}: PlansFlowProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedPkg, setSelectedPkg] = useState<Package | null>(null);
   const [form, setForm] = useState<OnboardingForm>(EMPTY_FORM);
@@ -627,6 +650,11 @@ export default function PlansFlow({ open, onClose, initialPackageId = null }: Pl
     setSelectedPkg(pkg);
     setStep(2);
   }, [open, initialPackageId]);
+
+  useEffect(() => {
+    if (!open || !initialProjectApproach) return;
+    setForm((prev) => ({ ...prev, projectApproach: initialProjectApproach }));
+  }, [open, initialProjectApproach]);
 
   if (!open) return null;
 

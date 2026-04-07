@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Plus, Clock, CheckCircle2, Eye, AlertCircle, FolderOpen, ChevronRight, Rocket, Settings2, Copy, ShoppingCart, Users, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PlansFlow from "@/components/plans-flow";
+import { getPusherClient } from "@/lib/pusher-client";
+import { getClientChannelName } from "@/lib/realtime";
 
 interface Project {
   id: string;
@@ -35,19 +38,47 @@ const TABS = [
 ];
 
 export default function ProjectsClient({ initialProjects }: { initialProjects: Project[] }) {
+  const { userId } = useAuth();
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [tab, setTab] = useState("all");
   const [flowOpen, setFlowOpen] = useState(false);
+  const [initialApproach, setInitialApproach] = useState<"template" | "custom" | "clone" | null>(null);
 
-  const filtered = tab === "all" ? initialProjects : initialProjects.filter((p) => p.status === tab);
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(getClientChannelName(userId));
+    const onNotification = async (payload: { type?: string }) => {
+      if (payload?.type !== "project_update") return;
+      const res = await fetch("/api/projects", { cache: "no-store" });
+      const data = await res.json().catch(() => []);
+      if (!res.ok) return;
+      setProjects(Array.isArray(data) ? data : []);
+    };
+
+    channel.bind("new-notification", onNotification);
+    return () => {
+      channel.unbind("new-notification", onNotification);
+      pusher.unsubscribe(getClientChannelName(userId));
+    };
+  }, [userId]);
+
+  const filtered = tab === "all" ? projects : projects.filter((p) => p.status === tab);
 
   return (
     <div className="space-y-6 overflow-x-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-extrabold text-brand-navy">Projects</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{initialProjects.length} total projects</p>
+          <p className="text-sm text-gray-400 mt-0.5">{projects.length} total projects</p>
         </div>
-        <Button onClick={() => setFlowOpen(true)} className="w-full sm:w-auto">
+        <Button onClick={() => { setInitialApproach(null); setFlowOpen(true); }} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />Request New
         </Button>
       </div>
@@ -55,13 +86,28 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
       {/* Quick start options */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: <Rocket className="h-5 w-5 text-brand-navy" />, label: "From Template", desc: "Start with a pre-built layout" },
-          { icon: <Settings2 className="h-5 w-5 text-brand-navy" />, label: "Custom Build", desc: "Fully tailored to your needs" },
-          { icon: <Copy className="h-5 w-5 text-brand-navy" />, label: "Clone Previous", desc: "Duplicate a past project" },
+          {
+            id: "template" as const,
+            icon: <Rocket className="h-5 w-5 text-brand-navy" />,
+            label: "From Template",
+            desc: "Starts from a proven structure, then we customize your brand/content.",
+          },
+          {
+            id: "custom" as const,
+            icon: <Settings2 className="h-5 w-5 text-brand-navy" />,
+            label: "Custom Build",
+            desc: "Built from scratch around your workflow, layout, and conversion goals.",
+          },
+          {
+            id: "clone" as const,
+            icon: <Copy className="h-5 w-5 text-brand-navy" />,
+            label: "Clone Previous",
+            desc: "Reuse a prior project baseline and update content/features for speed.",
+          },
         ].map((opt) => (
           <button
             key={opt.label}
-            onClick={() => setFlowOpen(true)}
+            onClick={() => { setInitialApproach(opt.id); setFlowOpen(true); }}
             className="bg-white border border-gray-200 rounded-2xl p-4 text-left hover:border-brand-green/40 hover:shadow-md transition-all group"
           >
             <div className="mb-2">{opt.icon}</div>
@@ -147,7 +193,7 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
             <p className="text-sm text-gray-400 mb-5">
               {tab === "all" ? "Request your first project to get started" : "Check back when your project moves to this stage"}
             </p>
-            {tab === "all" && <Button onClick={() => setFlowOpen(true)}>Request a Project</Button>}
+            {tab === "all" && <Button onClick={() => { setInitialApproach(null); setFlowOpen(true); }}>Request a Project</Button>}
           </CardContent>
         </Card>
       )}
@@ -176,7 +222,11 @@ export default function ProjectsClient({ initialProjects }: { initialProjects: P
         </CardContent>
       </Card>
 
-      <PlansFlow open={flowOpen} onClose={() => setFlowOpen(false)} />
+      <PlansFlow
+        open={flowOpen}
+        onClose={() => setFlowOpen(false)}
+        initialProjectApproach={initialApproach}
+      />
     </div>
   );
 }

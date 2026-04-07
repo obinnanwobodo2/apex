@@ -294,7 +294,7 @@ function CheckoutContent() {
                   <div>
                     <p className="font-medium text-sm text-brand-navy">Apex Visual {pkg.name} Package</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {isCrmPlan ? "Monthly CRM subscription" : "Monthly retainer"} — {pkg.turnaround}
+                      {isCrmPlan ? "Monthly CRM subscription" : "Once-off website build"} — {pkg.turnaround}
                     </p>
                   </div>
                   <span className="font-semibold text-sm">{formatCurrency(pkg.price)}</span>
@@ -323,7 +323,7 @@ function CheckoutContent() {
             <Card className={pkg.popular ? "border-brand-green ring-2 ring-brand-green/20" : ""}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-brand-navy">{pkg.name} Plan</CardTitle>
+                  <CardTitle className="text-brand-navy">{pkg.name} {isCrmPlan ? "Plan" : "Package"}</CardTitle>
                   {pkg.popular && (
                     <span className="text-xs font-bold text-brand-green uppercase tracking-wider">
                       Most Popular
@@ -331,7 +331,8 @@ function CheckoutContent() {
                   )}
                 </div>
                 <div className="text-3xl font-extrabold text-brand-navy">
-                  {formatCurrency(pkg.price)}<span className="text-sm font-normal text-gray-400">/month</span>
+                  {formatCurrency(pkg.price)}
+                  {isCrmPlan && <span className="text-sm font-normal text-gray-400">/month</span>}
                 </div>
               </CardHeader>
               <CardContent>
@@ -362,13 +363,13 @@ function CheckoutContent() {
                   ) : (
                     <>
                       <Lock className="h-4 w-4 mr-2" />
-                      Pay {formatCurrency(total)} with Paystack
+                      {isCrmPlan ? `Pay ${formatCurrency(total)} with Paystack` : `Pay ${formatCurrency(total)} once-off`}
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-center text-gray-400 mt-3">
-                  Secured by Paystack · Cancel anytime
+                  Secured by Paystack · {isCrmPlan ? "Recurring monthly billing" : "Website build is once-off"}
                 </p>
               </CardContent>
             </Card>

@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Send, Loader2, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { getPusherClient } from "@/lib/pusher-client";
+import { getClientChannelName } from "@/lib/realtime";
 
 interface Message {
   id: string;
@@ -21,21 +24,50 @@ export default function MessagesClient({
   projectTitle,
   initialMessages,
   isAdmin = false,
+  clientId,
 }: {
   projectId: string;
   projectTitle: string;
   initialMessages: Message[];
   isAdmin?: boolean;
+  clientId?: string;
 }) {
+  const { userId } = useAuth();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const selfLabel = "You";
+  const otherLabel = isAdmin ? "Client" : "Apex Visual Team";
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    const targetClientId = clientId || userId;
+    if (!targetClientId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channel = pusher.subscribe(getClientChannelName(targetClientId));
+    const onMessage = (payload: { projectId?: string; message?: Message }) => {
+      const incomingMessage = payload?.message;
+      if (!payload?.projectId || payload.projectId !== projectId || !incomingMessage) return;
+      setMessages((prev) => {
+        if (prev.some((item) => item.id === incomingMessage.id)) return prev;
+        return [...prev, incomingMessage];
+      });
+    };
+    channel.bind("new-message", onMessage);
+
+    return () => {
+      channel.unbind("new-message", onMessage);
+      pusher.unsubscribe(getClientChannelName(targetClientId));
+    };
+  }, [clientId, projectId, userId]);
 
   async function sendMessage() {
     const text = input.trim();
@@ -69,13 +101,16 @@ export default function MessagesClient({
         <p className="text-sm text-gray-400 mt-0.5">
           {isAdmin ? `Client project: ${projectTitle}` : `Project: ${projectTitle}`}
         </p>
+        <p className="text-xs text-gray-400 mt-1">
+          {isAdmin ? "Admin view: your replies are marked as Admin." : "Client view: your replies are marked as Client."}
+        </p>
       </div>
 
       <Card className="flex flex-col" style={{ height: "calc(100vh - 240px)", minHeight: "440px" }}>
         <CardHeader className="pb-3 flex-shrink-0 border-b border-gray-100">
           <CardTitle className="text-base text-brand-navy flex items-center gap-2">
             <MessageCircle className="h-4 w-4 text-brand-green" />
-            {isAdmin ? "Client Conversation" : "Your conversation with Apex Visual"}
+            {isAdmin ? "Admin ↔ Client Conversation" : "Client ↔ Apex Visual Admin"}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1 min-h-0 p-0">
@@ -94,22 +129,25 @@ export default function MessagesClient({
               </div>
             ) : (
               messages.map((msg) => {
-                const isSelf = isAdmin ? msg.senderRole === "admin" : msg.senderRole === "client";
+                // isSelf = true means it's YOUR message → show on RIGHT with dark bubble
+                const isSelf = isAdmin
+                  ? msg.senderRole === "admin"
+                  : msg.senderRole === "client";
                 return (
                   <div key={msg.id} className={`flex ${isSelf ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                      className={`max-w-[75%] rounded-2xl px-4 py-3 border ${
                         isSelf
-                          ? "bg-brand-navy text-white rounded-br-sm"
-                          : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                          ? "bg-brand-navy text-white rounded-br-sm border-brand-navy"
+                          : "bg-gray-100 text-gray-800 rounded-bl-sm border-gray-200"
                       }`}
                     >
                       <div
                         className={`text-[10px] font-semibold mb-1 ${
-                          isSelf ? "text-white/60" : "text-gray-400"
+                          isSelf ? "text-white/60" : "text-brand-green"
                         }`}
                       >
-                        {isSelf ? "You" : isAdmin ? "Client" : "Apex Visual Team"}
+                        {isSelf ? selfLabel : otherLabel}
                       </div>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.body}</p>
                       <div

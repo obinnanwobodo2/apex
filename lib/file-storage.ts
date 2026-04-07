@@ -1,40 +1,17 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
+import { prisma } from "@/lib/prisma";
 
 export interface StoredClientFile {
   id: string;
   userId: string;
   originalName: string;
-  storedName: string;
   size: number;
   type: string;
   category: "image" | "document" | "brand" | "other";
   uploadedAt: string;
 }
 
-const ROOT = path.join(process.cwd(), "storage", "client-files");
-
-function normalizeUserIdSegment(userId: string) {
-  const normalized = userId.trim().replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 120);
-  if (!normalized) throw new Error("Invalid user id");
-  return normalized;
-}
-
-function userRoot(userId: string) {
-  return path.join(ROOT, normalizeUserIdSegment(userId));
-}
-
-function userFilesDir(userId: string) {
-  return path.join(userRoot(userId), "files");
-}
-
-function userIndexPath(userId: string) {
-  return path.join(userRoot(userId), "index.json");
-}
-
-async function ensureUserDirs(userId: string) {
-  await fs.mkdir(userFilesDir(userId), { recursive: true });
+export interface StoredClientFileWithContent extends StoredClientFile {
+  content: Buffer;
 }
 
 function detectCategory(fileName: string, fileType: string): StoredClientFile["category"] {
@@ -55,85 +32,192 @@ function detectCategory(fileName: string, fileType: string): StoredClientFile["c
   return "other";
 }
 
-export async function readUserFiles(userId: string): Promise<StoredClientFile[]> {
-  try {
-    const raw = await fs.readFile(userIndexPath(userId), "utf8");
-    const parsed = JSON.parse(raw) as StoredClientFile[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+function toStoredFile(record: {
+  id: string;
+  userId: string;
+  originalName: string;
+  type: string;
+  size: number;
+  category: string;
+  uploadedAt: Date;
+}): StoredClientFile {
+  return {
+    id: record.id,
+    userId: record.userId,
+    originalName: record.originalName,
+    type: record.type,
+    size: record.size,
+    category: (record.category as StoredClientFile["category"]) || "other",
+    uploadedAt: record.uploadedAt.toISOString(),
+  };
 }
 
-async function writeUserFiles(userId: string, files: StoredClientFile[]) {
-  await ensureUserDirs(userId);
-  await fs.writeFile(userIndexPath(userId), JSON.stringify(files, null, 2), "utf8");
+export async function readUserFiles(userId: string): Promise<StoredClientFile[]> {
+  const rows = await prisma.clientFile.findMany({
+    where: { userId },
+    orderBy: { uploadedAt: "desc" },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      uploadedAt: true,
+    },
+  });
+
+  if (rows.length > 0) return rows.map(toStoredFile);
+
+  const fileRecords = await prisma.fileRecord.findMany({
+    where: { clientId: userId },
+    orderBy: { uploadedAt: "desc" },
+  });
+
+  return fileRecords.map((record) => ({
+    id: record.id,
+    userId,
+    originalName: record.fileName,
+    type: "application/octet-stream",
+    size: 0,
+    category: (record.category as StoredClientFile["category"]) || "other",
+    uploadedAt: record.uploadedAt.toISOString(),
+  }));
 }
 
 export async function saveUserFile(userId: string, file: File): Promise<StoredClientFile> {
-  await ensureUserDirs(userId);
-  const ext = path.extname(file.name || "") || "";
-  const storedName = `${Date.now()}-${randomUUID()}${ext}`;
-  const filePath = path.join(userFilesDir(userId), storedName);
+  await prisma.profile.upsert({
+    where: { id: userId },
+    create: { id: userId },
+    update: {},
+  });
 
   const arrayBuffer = await file.arrayBuffer();
-  await fs.writeFile(filePath, Buffer.from(arrayBuffer));
+  const record = await prisma.clientFile.create({
+    data: {
+      userId,
+      originalName: (file.name || "upload").trim() || "upload",
+      type: file.type || "application/octet-stream",
+      size: file.size,
+      category: detectCategory(file.name || "", file.type || ""),
+      content: Buffer.from(arrayBuffer),
+    },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      uploadedAt: true,
+    },
+  });
 
-  const record: StoredClientFile = {
-    id: randomUUID(),
-    userId,
-    originalName: (file.name || "upload").trim() || "upload",
-    storedName,
-    size: file.size,
-    type: file.type || "application/octet-stream",
-    category: detectCategory(file.name || "", file.type || ""),
-    uploadedAt: new Date().toISOString(),
-  };
+  await prisma.fileRecord.upsert({
+    where: { id: record.id },
+    create: {
+      id: record.id,
+      clientId: userId,
+      fileName: record.originalName,
+      fileUrl: `/api/files/${record.id}`,
+      category: record.category,
+      uploadedAt: record.uploadedAt,
+    },
+    update: {
+      fileName: record.originalName,
+      fileUrl: `/api/files/${record.id}`,
+      category: record.category,
+      uploadedAt: record.uploadedAt,
+    },
+  });
 
-  const current = await readUserFiles(userId);
-  await writeUserFiles(userId, [record, ...current]);
-  return record;
+  return toStoredFile(record);
 }
 
 export async function deleteUserFile(userId: string, id: string): Promise<boolean> {
-  const current = await readUserFiles(userId);
-  const target = current.find((f) => f.id === id);
-  if (!target) return false;
-
-  const filePath = path.join(userFilesDir(userId), target.storedName);
-  try {
-    await fs.unlink(filePath);
-  } catch {
-    // If missing on disk, still remove from index.
-  }
-
-  await writeUserFiles(
-    userId,
-    current.filter((f) => f.id !== id)
-  );
-  return true;
+  const [fileResult, metaResult] = await Promise.all([
+    prisma.clientFile.deleteMany({
+      where: { id, userId },
+    }),
+    prisma.fileRecord.deleteMany({
+      where: { id, clientId: userId },
+    }),
+  ]);
+  return fileResult.count > 0 || metaResult.count > 0;
 }
 
 export async function findUserFile(userId: string, id: string): Promise<StoredClientFile | null> {
-  const files = await readUserFiles(userId);
-  return files.find((f) => f.id === id) ?? null;
+  const row = await prisma.clientFile.findFirst({
+    where: { id, userId },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      uploadedAt: true,
+    },
+  });
+  return row ? toStoredFile(row) : null;
+}
+
+export async function findUserFileWithContent(userId: string, id: string): Promise<StoredClientFileWithContent | null> {
+  const row = await prisma.clientFile.findFirst({
+    where: { id, userId },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      content: true,
+      uploadedAt: true,
+    },
+  });
+  if (!row) return null;
+
+  return {
+    ...toStoredFile(row),
+    content: Buffer.from(row.content),
+  };
+}
+
+export async function findAnyFileWithContent(id: string): Promise<StoredClientFileWithContent | null> {
+  const row = await prisma.clientFile.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      content: true,
+      uploadedAt: true,
+    },
+  });
+  if (!row) return null;
+
+  return {
+    ...toStoredFile(row),
+    content: Buffer.from(row.content),
+  };
 }
 
 export async function listAllStoredFiles(): Promise<StoredClientFile[]> {
-  try {
-    await fs.mkdir(ROOT, { recursive: true });
-    const dirs = await fs.readdir(ROOT, { withFileTypes: true });
-    const all = await Promise.all(
-      dirs
-        .filter((d) => d.isDirectory())
-        .map((d) => readUserFiles(d.name))
-    );
-    return all.flat().sort((a, b) => (a.uploadedAt < b.uploadedAt ? 1 : -1));
-  } catch {
-    return [];
-  }
-}
-
-export function absoluteStoredPath(file: StoredClientFile) {
-  return path.join(userFilesDir(file.userId), file.storedName);
+  const rows = await prisma.clientFile.findMany({
+    orderBy: { uploadedAt: "desc" },
+    select: {
+      id: true,
+      userId: true,
+      originalName: true,
+      type: true,
+      size: true,
+      category: true,
+      uploadedAt: true,
+    },
+  });
+  return rows.map(toStoredFile);
 }

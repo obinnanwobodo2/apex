@@ -2,8 +2,39 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, PACKAGES } from "@/lib/utils";
 import { TrendingUp, CreditCard } from "lucide-react";
+
+function recurringAmount(sub: {
+  package: string;
+  amount: number;
+  hostingAmount: number;
+  projectType: string | null;
+}) {
+  const isDomain = sub.projectType === "domain_registration" || sub.package === "domain-registration";
+  const isCrm = sub.package.startsWith("crm-");
+  const isWebsite = sub.package in PACKAGES;
+  if (isCrm) return sub.amount;
+  if (isWebsite) return sub.hostingAmount ?? 0;
+  if (isDomain) return 0;
+  return sub.amount;
+}
+
+function priceLabel(sub: {
+  package: string;
+  amount: number;
+  hostingAmount: number;
+  projectType: string | null;
+}) {
+  const isDomain = sub.projectType === "domain_registration" || sub.package === "domain-registration";
+  const isCrm = sub.package.startsWith("crm-");
+  const isWebsite = sub.package in PACKAGES;
+  if (isCrm) return `${formatCurrency(sub.amount)}/mo`;
+  if (isWebsite && (sub.hostingAmount ?? 0) > 0) return `Build ${formatCurrency(sub.amount)} once-off · Hosting ${formatCurrency(sub.hostingAmount)}/mo`;
+  if (isWebsite) return `${formatCurrency(sub.amount)} once-off`;
+  if (isDomain) return `${formatCurrency(sub.amount)}/year`;
+  return formatCurrency(sub.amount);
+}
 
 export default async function AdminBillingPage() {
   const { userId } = await auth();
@@ -15,7 +46,9 @@ export default async function AdminBillingPage() {
   });
 
   const totalRevenue = subscriptions.reduce((s, sub) => s + sub.amountPaid, 0);
-  const mrr = subscriptions.filter((s) => s.status === "active" && s.paid).reduce((s, sub) => s + sub.amount, 0);
+  const mrr = subscriptions
+    .filter((s) => s.status === "active" && s.paid)
+    .reduce((sum, sub) => sum + recurringAmount(sub), 0);
   const pending = subscriptions.filter((s) => s.status === "pending").length;
 
   return (
@@ -70,7 +103,7 @@ export default async function AdminBillingPage() {
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
                   <div className="text-right">
-                    <div className="font-bold text-brand-navy text-sm">{formatCurrency(s.amount)}/mo</div>
+                    <div className="font-bold text-brand-navy text-sm">{priceLabel(s)}</div>
                     <div className="text-xs text-gray-400">Paid: {formatCurrency(s.amountPaid)}</div>
                   </div>
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${

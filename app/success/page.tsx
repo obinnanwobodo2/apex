@@ -15,6 +15,7 @@ function SuccessContent() {
   const [warning, setWarning] = useState("");
   const isCrm = packageName.toLowerCase().includes("crm");
   const isDomain = packageName.toLowerCase().includes("domain");
+  const isWebsiteFlow = !isCrm && !isDomain;
 
   useEffect(() => {
     if (!reference) {
@@ -87,7 +88,7 @@ function SuccessContent() {
             ? "We are provisioning your domain now. You can track status in Dashboard > Domains."
             : isCrm
             ? "We&apos;ll activate your CRM onboarding shortly and share your setup steps."
-            : "We&apos;ll reach out within 24 hours to kick off your onboarding. Get ready to go live!"}
+            : "Your project request is confirmed. Next step: upload your files and our admin team will begin the build."}
         </p>
         {warning && (
           <div className="mb-8 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
@@ -112,13 +113,13 @@ function SuccessContent() {
               ? "Domain registration is being finalized with the registrar"
               : isCrm
               ? "We&apos;ll send your CRM onboarding checklist"
-              : "We&apos;ll send you an onboarding questionnaire",
-            "Your dedicated account manager will be in touch",
+              : "Upload your logo/content files in Dashboard > Files",
+            isWebsiteFlow ? "Our admin team starts development and shares updates in Messages" : "Your dedicated account manager will be in touch",
             isDomain
               ? "You can monitor renewal and invoice status in Billing"
               : isCrm
               ? "We configure your CRM workspace and integrations"
-              : "We start building — launch is around the corner",
+              : "You review previews and approve before publish",
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3 text-sm text-gray-600">
               <span className="w-5 h-5 rounded-full bg-brand-green text-white text-xs flex items-center justify-center shrink-0 mt-0.5">
@@ -131,14 +132,14 @@ function SuccessContent() {
 
         <div className="flex flex-col sm:flex-row gap-3">
           <Button className="flex-1" asChild>
-            <Link href="/dashboard">
+            <Link href={isCrm ? "/crm" : "/dashboard"}>
               <LayoutDashboard className="h-4 w-4 mr-2" />
-              Go to Dashboard
+              {isCrm ? "Go to CRM Dashboard" : "Go to Dashboard"}
             </Link>
           </Button>
           <Button variant="outline" className="flex-1" asChild>
-            <Link href="/">
-              Back to Home
+            <Link href={isCrm ? "/dashboard" : isWebsiteFlow ? "/dashboard/files" : "/"}>
+              {isCrm ? "Back to Client Dashboard" : isWebsiteFlow ? "Upload Project Files" : "Back to Home"}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
           </Button>

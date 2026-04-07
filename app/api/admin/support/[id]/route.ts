@@ -47,6 +47,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           phone: true,
         },
       },
+      replies: {
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -55,5 +58,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
+    replies: ticket.replies.map((reply) => ({
+      ...reply,
+      createdAt: reply.createdAt.toISOString(),
+    })),
   });
 }

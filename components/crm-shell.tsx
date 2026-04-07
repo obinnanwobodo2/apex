@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Users, TrendingUp, CheckSquare, Zap, Bot,
+  LayoutDashboard, Users, TrendingUp, CheckSquare, Bot,
   LogOut, Menu, ChevronRight, Bell, ArrowLeft,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +21,6 @@ const NAV_ITEMS = [
   { href: "/crm/contacts", icon: <Users className="h-4 w-4" />, label: "Contacts" },
   { href: "/crm/pipeline", icon: <TrendingUp className="h-4 w-4" />, label: "Pipeline" },
   { href: "/crm/tasks", icon: <CheckSquare className="h-4 w-4" />, label: "Tasks" },
-  { href: "/crm/integrations", icon: <Zap className="h-4 w-4" />, label: "Integrations" },
   { href: "/crm/ai", icon: <Bot className="h-4 w-4" />, label: "AI Assistant" },
 ];
 

@@ -11,6 +11,7 @@ interface Project {
   title: string;
   type: string;
   status: string;
+  stage?: number;
   progress: number;
   description: string | null;
   notes: string | null;
@@ -74,6 +75,36 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
     }
   }
 
+  async function updateProjectStage(id: string, status: string) {
+    const statusToStage: Record<string, number> = {
+      requested: 1,
+      scoping: 2,
+      in_progress: 3,
+      review: 4,
+      completed: 5,
+    };
+    const stage = statusToStage[status] ?? 1;
+    setSavingId(id);
+    try {
+      const res = await fetch(`/api/projects/${id}/stage`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage }),
+      });
+      if (!res.ok) throw new Error("Failed to update stage");
+      const updated = await res.json();
+      setItems((prev) => prev.map((project) => (
+        project.id === id
+          ? { ...project, status: updated.status, progress: updated.progress, stage: updated.stage }
+          : project
+      )));
+    } catch {
+      await updateProject(id, { status });
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   if (items.length === 0) {
     return (
       <div className="space-y-6">
@@ -126,7 +157,7 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
                   <div className="flex items-center gap-2">
                     <select
                       value={p.status}
-                      onChange={(e) => updateProject(p.id, { status: e.target.value })}
+                      onChange={(e) => void updateProjectStage(p.id, e.target.value)}
                       className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-600"
                     >
                       {STATUSES.map((s) => (
