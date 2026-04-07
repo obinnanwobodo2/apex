@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, CreditCard, Settings, LogOut,
-  Bell, Menu, ChevronRight, User, Users,
+  Bell, Menu, User,
   MessageCircle, FolderKanban, X, Search, FileText, Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,9 +30,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
-const ADDON_ITEMS = [
-  { href: "/crm", icon: Users, label: "CRM", badge: "PRO" },
-];
+const ADDON_ITEMS: { href: string; icon: React.ComponentType<{ className?: string }>; label: string; badge?: string }[] = [];
 
 const TOUR_STEPS = [
   {
@@ -279,68 +277,52 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     const isActive = pathname === item.href;
     return (
       <Link href={item.href} onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-          isActive ? "bg-brand-green/10 text-brand-green border border-brand-green/30" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-        }`}>
-        <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-brand-green" : "text-gray-400"}`} />
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          isActive
+            ? "text-white font-semibold"
+            : "text-white/55 hover:text-white hover:bg-white/10"
+        }`}
+        style={isActive ? { background: "linear-gradient(135deg, rgba(45,197,162,0.25), rgba(45,197,162,0.12))", border: "1px solid rgba(45,197,162,0.3)" } : undefined}
+      >
+        <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-brand-green" : "text-white/40"}`} />
         {item.label}
-        {isActive && <ChevronRight className="h-3 w-3 ml-auto text-brand-green/60" />}
+        {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-green" />}
       </Link>
     );
   };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-4 border-b border-gray-200">
+      <div className="px-4 py-5 border-b border-white/10">
         <Link href="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2.5">
-          <Image src="/logo.svg" alt="Apex Visual" width={126} height={50} className="h-8 w-auto" />
+          <Image src="/logo.svg" alt="Apex Visual" width={126} height={50} className="h-8 w-auto brightness-0 invert" />
         </Link>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Portal</p>
+        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-3">Client Portal</p>
         {NAV_ITEMS.map((item) => <NavLink key={item.href} item={item} onClick={() => setSidebarOpen(false)} />)}
-
-        <div className="pt-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Add-ons</p>
-          {ADDON_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive ? "bg-brand-green/10 text-brand-green border border-brand-green/30" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}>
-                <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-brand-green" : "text-gray-400"}`} />
-                {item.label}
-                {item.badge && <span className="ml-auto text-[9px] bg-brand-green/15 text-brand-green px-1.5 py-0.5 rounded font-bold">{item.badge}</span>}
-              </Link>
-            );
-          })}
-        </div>
       </nav>
 
-      <div className="border-t border-gray-200 p-3">
-        <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-100">
+      <div className="border-t border-white/10 p-3">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10">
           <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage src={avatarUrl} />
-            <AvatarFallback className="bg-brand-green/20 text-brand-green text-[10px] font-bold">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-brand-green text-white text-[10px] font-bold">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-gray-900 truncate">{displayName}</p>
-            <p className="text-[10px] text-gray-400 truncate">{email}</p>
+            <p className="text-xs font-semibold text-white truncate">{displayName}</p>
+            <p className="text-[10px] text-white/40 truncate">{email}</p>
           </div>
         </div>
         {isGuestPreview ? (
-          <button
-            onClick={() => router.push("/login")}
-            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-brand-navy hover:bg-gray-100 transition-colors"
-          >
+          <button onClick={() => router.push("/login")}
+            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors">
             <User className="h-3.5 w-3.5" />Sign in to manage account
           </button>
         ) : (
           <button onClick={handleSignOut}
-            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-brand-navy hover:bg-gray-100 transition-colors">
+            className="w-full mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors">
             <LogOut className="h-3.5 w-3.5" />Sign out
           </button>
         )}
@@ -349,23 +331,23 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className="hidden lg:flex w-52 flex-col bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-30">
+    <div className="min-h-screen flex" style={{ background: "linear-gradient(135deg, #f0fdf9 0%, #f8fafc 50%, #eff6ff 100%)" }}>
+      <aside className="hidden lg:flex w-56 flex-col fixed inset-y-0 left-0 z-30" style={{ background: "linear-gradient(180deg, #0f1e35 0%, #1b2340 60%, #0f2a1e 100%)" }}>
         <SidebarContent />
       </aside>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-gray-50/80 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-52 bg-white border-r border-gray-200 transform transition-transform duration-200 lg:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-56 transform transition-transform duration-200 lg:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`} style={{ background: "linear-gradient(180deg, #0f1e35 0%, #1b2340 60%, #0f2a1e 100%)" }}>
         <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 p-1 rounded text-gray-500 hover:text-gray-900">
           <X className="h-4 w-4" />
         </button>
         <SidebarContent />
       </aside>
 
-      <div className="flex-1 lg:ml-52 flex flex-col min-h-screen">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-20" style={{ height: "52px" }}>
+      <div className="flex-1 lg:ml-56 flex flex-col min-h-screen">
+        <header className="sticky top-0 z-20 border-b border-white/60 backdrop-blur-md" style={{ height: "52px", background: "rgba(255,255,255,0.85)" }}>
           <div className="px-4 sm:px-6 h-full flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <button className="lg:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors" onClick={() => setSidebarOpen(true)}>
@@ -483,7 +465,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </header>
 
         <main className="flex-1 px-4 sm:px-6 py-8">
-          <div className="max-w-5xl mx-auto">{children}</div>
+          <div className="max-w-5xl mx-auto space-y-0">{children}</div>
         </main>
       </div>
 

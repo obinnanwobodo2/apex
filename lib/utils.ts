@@ -33,7 +33,7 @@ export const PACKAGES = {
   starter: {
     id: "starter",
     name: "Starter",
-    price: 800,
+    price: 400,
     badge: "GROWING BUSINESSES",
     tagline: "Best For: Growing Businesses",
     turnaround: "5–7 business days",
@@ -50,7 +50,7 @@ export const PACKAGES = {
   growth: {
     id: "growth",
     name: "Growth",
-    price: 1800,
+    price: 700,
     badge: "MOST POPULAR",
     tagline: "High-Performance & Conversion-Focused",
     turnaround: "7–10 business days",
@@ -67,7 +67,7 @@ export const PACKAGES = {
   pro: {
     id: "pro",
     name: "Pro",
-    price: 3500,
+    price: 1199,
     badge: "FULL SERVICE",
     tagline: "Premium & Full-Service",
     turnaround: "10–14 business days",

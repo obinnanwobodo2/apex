@@ -97,9 +97,11 @@ export default function PricingSection() {
 
                   <div className="mb-6">
                     <div className="flex items-end gap-1">
-                      <span className="text-base font-semibold text-gray-500 italic">Pricing — contact us</span>
+                      <span className="text-3xl font-extrabold text-brand-navy">R{pkg.price.toLocaleString()}</span>
+                      <span className="text-sm text-gray-400 mb-1">/month</span>
                     </div>
-                    <p className="text-gray-500 text-sm mt-1">{pkg.tagline}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">excl. VAT · cancel with 30 days notice</p>
+                    <p className="text-gray-500 text-sm mt-2">{pkg.tagline}</p>
                     {pkg.id === "pro" && (
                       <p className="text-gray-400 text-xs mt-2 leading-relaxed">The equivalent of one day of a full-time developer&apos;s time — but you get an entire agency team, every day of the month.</p>
                     )}
