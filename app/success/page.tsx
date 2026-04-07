@@ -113,8 +113,8 @@ function SuccessContent() {
               ? "Domain registration is being finalized with the registrar"
               : isCrm
               ? "We&apos;ll send your CRM onboarding checklist"
-              : "Upload your logo/content files in Dashboard > Files",
-            isWebsiteFlow ? "Our admin team starts development and shares updates in Messages" : "Your dedicated account manager will be in touch",
+              : "Complete your project brief (takes 2 minutes)",
+            isWebsiteFlow ? "Upload your logo and brand files in Dashboard → Files" : "Your dedicated account manager will be in touch",
             isDomain
               ? "You can monitor renewal and invoice status in Billing"
               : isCrm
@@ -132,14 +132,14 @@ function SuccessContent() {
 
         <div className="flex flex-col sm:flex-row gap-3">
           <Button className="flex-1" asChild>
-            <Link href={isCrm ? "/crm" : "/dashboard"}>
+            <Link href={isCrm ? "/crm" : isWebsiteFlow ? "/dashboard/onboarding" : "/dashboard"}>
               <LayoutDashboard className="h-4 w-4 mr-2" />
-              {isCrm ? "Go to CRM Dashboard" : "Go to Dashboard"}
+              {isCrm ? "Go to CRM Dashboard" : isWebsiteFlow ? "Set Up My Project" : "Go to Dashboard"}
             </Link>
           </Button>
           <Button variant="outline" className="flex-1" asChild>
-            <Link href={isCrm ? "/dashboard" : isWebsiteFlow ? "/dashboard/files" : "/"}>
-              {isCrm ? "Back to Client Dashboard" : isWebsiteFlow ? "Upload Project Files" : "Back to Home"}
+            <Link href={isCrm ? "/dashboard" : "/dashboard"}>
+              {isCrm ? "Back to Client Dashboard" : "Skip for now"}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
           </Button>

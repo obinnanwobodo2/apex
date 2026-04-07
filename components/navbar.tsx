@@ -8,10 +8,10 @@ import { useUser, SignOutButton } from "@clerk/nextjs";
 
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
-  { href: "/login", label: "Sign In" },
 ];
 
 export default function Navbar() {
@@ -73,7 +73,18 @@ export default function Navbar() {
                   </button>
                 </SignOutButton>
               </>
-            ) : null}
+            ) : (
+              <>
+                <Link href="/login" className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                  Sign in
+                </Link>
+                <Link href="/pricing"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -112,7 +123,19 @@ export default function Navbar() {
                     </button>
                   </SignOutButton>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setIsOpen(false)}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900">
+                    Sign in
+                  </Link>
+                  <Link href="/pricing" onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-bold text-white"
+                    style={{ background: "linear-gradient(135deg,#1b2340,#2dc5a2)" }}>
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

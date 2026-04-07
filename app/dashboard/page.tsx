@@ -56,6 +56,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     });
   }
 
+  // Gate: if user has a paid subscription but hasn't set up a project yet, send them to onboarding
+  if (userId && !searchParams?.plan) {
+    const hasPaidSub = subscriptions.some((s) => s.paid && s.status === "active");
+    const hasProject = projects.length > 0;
+    if (hasPaidSub && !hasProject) {
+      redirect("/dashboard/onboarding");
+    }
+  }
+
   const serializedSubs = subscriptions.map((s) => ({
     ...s,
     cancelledAt: s.cancelledAt?.toISOString() ?? null,
