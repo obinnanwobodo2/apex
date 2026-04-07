@@ -67,8 +67,7 @@ const ADDONS = [
   { name: "Website Maintenance Plan", price: "R600/mo", desc: "Monthly updates, security checks, and backups" },
   { name: "Hosting (Basic)", price: "R150/mo", desc: "5GB SSD, SSL, 99.9% uptime" },
   { name: "Hosting (Business)", price: "R350/mo", desc: "20GB SSD, priority support, CDN" },
-  { name: "CRM Starter", price: "R199/mo", desc: "Up to 500 contacts, AI assistant" },
-  { name: "CRM Pro", price: "R1,200/mo", desc: "Unlimited contacts, full integrations" },
+  { name: "CRM Pro", price: "R199/mo", desc: "Unlimited contacts, pipeline, AI assistant" },
   { name: "Extra Domain", price: "R180/yr", desc: ".co.za or .com registration" },
   { name: "Priority Support", price: "R400/mo", desc: "4-hour response SLA, dedicated line" },
 ];
@@ -148,10 +147,13 @@ export default function ServicesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-brand-navy">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="py-20 px-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0d1526 0%, #1b2340 50%, #0f2a1e 100%)" }}>
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#2dc5a2 1px, transparent 1px), linear-gradient(to right, #2dc5a2 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #2dc5a2, transparent)" }} />
+        <div className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #2dc5a2, transparent)" }} />
+        <div className="relative max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Not sure what you need?</h2>
-          <p className="text-gray-300 mb-8">Book a free 30-minute consultation and we&apos;ll put together a custom package.</p>
+          <p className="text-white/60 mb-8">Book a free 30-minute consultation and we&apos;ll put together a custom package.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="xl" asChild><Link href="/contact">Book Free Consultation <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
             <Button size="xl" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild><Link href="/#packages">View Pricing</Link></Button>

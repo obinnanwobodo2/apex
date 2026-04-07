@@ -43,7 +43,7 @@
   body {
     background-color: #f8fafc;
     color: #111827;
-    font-weight: 300;
+    font-weight: 200;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -54,6 +54,31 @@
 }
 
 @layer utilities {
+  /* Global typography remap: keep class names, render lighter weights. */
+  .font-black {
+    font-weight: 500 !important;
+  }
+
+  .font-extrabold {
+    font-weight: 440 !important;
+  }
+
+  .font-bold {
+    font-weight: 380 !important;
+  }
+
+  .font-semibold {
+    font-weight: 320 !important;
+  }
+
+  .font-medium {
+    font-weight: 280 !important;
+  }
+
+  .font-normal {
+    font-weight: 240 !important;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
